@@ -5,7 +5,7 @@ description: 5-6년차 Kotlin/Spring 백엔드 개발자 함경재(Luca). 대용
 
 > 안녕하세요, 백엔드 개발자 **함경재 (Luca)** 입니다. Kotlin · Spring Boot 위에서 일하며, 느린 코드의 진짜 병목을 찾아 수치로 끌어내리는 일을 좋아합니다.
 
-## 임팩트가 컸던 일들
+## Highlights
 
 | 수치 | 무엇을 | 어디서 |
 |---|---|---|
@@ -16,7 +16,7 @@ description: 5-6년차 Kotlin/Spring 백엔드 개발자 함경재(Luca). 대용
 | **분실율 0%** | 출결 데이터 — 줌 webhook · 동영상 · 출결 계산 별도 서버 분리 | 라이너스 |
 | **5초+ → 1초 이내** (목표) | athlog 영상 첫 프레임 — HLS 적응형 + EventBridge 비동기 파이프라인 | 위밋모빌리티 / athlog |
 
-## 경력
+## Experience
 
 ### 위밋모빌리티 — 백엔드 주임 · 2024.10 ~ 재직중
 
@@ -48,25 +48,18 @@ description: 5-6년차 Kotlin/Spring 백엔드 개발자 함경재(Luca). 대용
 
 - 한 달 MVP — PDF 솔루션 구독료 연 300만원을 S3 직접 서빙 + 프론트 보안 처리로 대체
 
-## 기술 스택
+## Tech Stack
 
 | 영역 | 도구 |
 |---|---|
-| **언어** | Kotlin · Java · TypeScript · Python (Django/DRF) |
-| **백엔드** | Spring Boot · Spring Batch · Spring Security · JPA · Querydsl · Nest.js |
-| **저장소** | MySQL · PostgreSQL · MongoDB · Redis · RabbitMQ |
-| **인프라** | AWS (S3 · CloudFront · MediaConvert · EventBridge · SQS · RDS · EKS) · Docker · Kubernetes · Jenkins · Ansible |
-| **테스트·문서** | JUnit5 · MockK · Kotest · RestDocs (KotlinDSL) · K6 |
-| **학습 중** | Rust + Axum |
+| **Languages** | Kotlin · Java · TypeScript · Python (Django/DRF) |
+| **Backend** | Spring Boot · Spring Batch · Spring Security · JPA · Querydsl · Nest.js |
+| **Datastore** | MySQL · PostgreSQL · MongoDB · Redis · RabbitMQ |
+| **Infra** | AWS (S3 · CloudFront · MediaConvert · EventBridge · SQS · RDS · EKS) · Docker · Kubernetes · Jenkins · Ansible |
+| **Testing** | JUnit5 · MockK · Kotest · RestDocs (KotlinDSL) · K6 |
+| **Learning** | Rust + Axum |
 
-## 글쓰기 원칙
-
-- **수치 우선** — Before / After 를 가능한 한 정량으로 (추정·실측 구분 표기)
-- **트레이드오프 기록** — 채택한 후보뿐 아니라 기각한 후보와 그 이유까지
-- **운영 관점** — 좀비 행 · 재시동 · 실패 처리 · 관측 디테일까지
-
-## 연락
+## Contact
 
 - GitHub — [@gyeongjae-ham](https://github.com/gyeongjae-ham)
 - Email — gyeongjae.h.dev@gmail.com
-- 이전 블로그 — [velog @hiyeeluca](https://velog.io/@hiyeeluca/posts)
