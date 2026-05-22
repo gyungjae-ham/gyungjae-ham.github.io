@@ -10,25 +10,25 @@
   --font-app: var(--font-google-sans-code);
 }
 
-/* Light theme values */
+/* Catppuccin Latte (light) */
 :root,
 [data-theme="light"] {
-  --background: #fdfdfd;
-  --foreground: #282728;
-  --accent: #006cac;
+  --background: #eff1f5;
+  --foreground: #4c4f69;
+  --accent: #8839ef;
   --accent-foreground: #ffffff;
-  --muted: #e6e6e6;
-  --muted-foreground: #6b7280;
-  --border: #ece9e9;
+  --muted: #ccd0da;
+  --muted-foreground: #6c6f85;
+  --border: #bcc0cc;
 }
 
-/* Dark theme values */
+/* Catppuccin Mocha (dark) */
 [data-theme="dark"] {
-  --background: #212737;
-  --foreground: #eaedf3;
-  --accent: #ff6b01;
-  --accent-foreground: #ffffff;
-  --muted: #343f60;
-  --muted-foreground: #afb9ca;
-  --border: #ab4b08;
+  --background: #1e1e2e;
+  --foreground: #cdd6f4;
+  --accent: #cba6f7;
+  --accent-foreground: #1e1e2e;
+  --muted: #313244;
+  --muted-foreground: #a6adc8;
+  --border: #45475a;
 }
