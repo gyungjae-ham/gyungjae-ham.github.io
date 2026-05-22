@@ -1,9 +1,9 @@
 ---
 title: About
-description: 5-6년차 Kotlin/Spring 백엔드 개발자 함경재(Luca). 대용량 트래픽 처리와 시스템 최적화 중심의 경력 요약입니다.
+description: 5-6년차 Kotlin/Spring·Python/Django 백엔드 개발자 함경재(Luca). 대용량 트래픽 처리와 시스템 최적화 중심의 경력 요약입니다.
 ---
 
-> 안녕하세요, 백엔드 개발자 **함경재 (Luca)** 입니다. Kotlin · Spring Boot 위에서 일하며, 느린 코드의 진짜 병목을 찾아 수치로 끌어내리는 일을 좋아합니다.
+> 안녕하세요, 백엔드 개발자 **함경재 (Luca)** 입니다. Kotlin · Spring Boot · Python · Django 위에서 일하며, 느린 코드의 진짜 병목을 찾아 수치로 끌어내리는 일을 좋아합니다.
 
 ## Highlights
 
@@ -15,10 +15,20 @@ description: 5-6년차 Kotlin/Spring 백엔드 개발자 함경재(Luca). 대용
 | **3분 20초 → 21초** | 테스트 실행 — 병렬 + 라이프사이클 + 모듈별 `SAME_THREAD` 분리 | 위밋모빌리티 |
 | **분실율 0%** | 출결 데이터 — 줌 webhook · 동영상 · 출결 계산 별도 서버 분리 | 라이너스 |
 | **5초+ → 1초 이내** (목표) | athlog 영상 첫 프레임 — HLS 적응형 + EventBridge 비동기 파이프라인 | 위밋모빌리티 / athlog |
+| **이미지 ~600MB → 135MB** | Athler API Kotlin 이전 — Spring Boot 4 + jlink 커스텀 JRE + Alpine 3-stage 빌드 | BIND / Athler |
 
 ## Experience
 
-### 위밋모빌리티 — 백엔드 주임 · 2024.10 ~ 재직중
+### BIND — 백엔드 · 2026.01 ~ 재직중
+
+- **스택** Python / Django / DRF / Celery / PostgreSQL / Redis / AWS (ECS Fargate · OpenSearch · ElastiCache) · Kotlin / Spring Boot 4 (신규 API)
+- **Celery 장애 분석** 매일 09:00 Worker CPU 70~80% 급증 현상을 추적, 근본 원인을 대량 태스크 큐잉으로 규명하고 rate limit · chunk chaining · 시간대 분산 + 메트릭 기반 오토스케일링 개선안 설계
+- **Celery Queue 분리 설계** 단일 default 큐 + Worker 30대 구조에서 우선순위 역전·장애 전파 문제 진단, `high` / `default` / `low` 3-Queue + ECS Service 별 독립 스케일링 아키텍처와 단계적 마이그레이션 플랜 수립
+- **PR 단위 Ephemeral 테스트 환경** dev 환경 1개 공유에서 `pr-{번호}.dev.example.com` 자동 배포·정리 워크플로우로 전환, Fargate Spot + 와일드카드 ACM · Route53 + 동적 ALB rule 로 PR 마다 격리 환경 제공
+- **모니터링·관측성 로드맵** Sentry `sample_rate=0.01` + Slack 알림 미작동으로 5xx 99% 유실되던 구조를, 전역 `EXCEPTION_HANDLER` + `before_send` 4xx 필터링 + 구조화 로깅으로 재설계 (4개 PR 단계화)
+- **Athler API Kotlin 이전 도커화** Spring Boot 4 + jlink 커스텀 JRE + Alpine 3-stage 빌드로 운영 이미지 ~600MB → 135MB 축소, ECS Fargate 에 맞춰 `MaxRAMPercentage` · graceful shutdown 튜닝
+
+### 위밋모빌리티 — 백엔드 주임 · 2024.10 ~ 2026.01
 
 - **스택** Kotlin / Spring Boot 3 / MySQL / Querydsl / MongoDB / Redis / K6 / Kubernetes / AWS
 - **성능** 대용량 주문 92% ↓ · Slow Query 95% ↓ · 테스트 속도 90% ↓
@@ -53,9 +63,9 @@ description: 5-6년차 Kotlin/Spring 백엔드 개발자 함경재(Luca). 대용
 | 영역 | 도구 |
 |---|---|
 | **Languages** | Kotlin · Java · TypeScript · Python (Django/DRF) |
-| **Backend** | Spring Boot · Spring Batch · Spring Security · JPA · Querydsl · Nest.js |
+| **Backend** | Spring Boot · Spring Batch · Spring Security · JPA · Querydsl · Nest.js · Celery |
 | **Datastore** | MySQL · PostgreSQL · MongoDB · Redis · RabbitMQ |
-| **Infra** | AWS (S3 · CloudFront · MediaConvert · EventBridge · SQS · RDS · EKS) · Docker · Kubernetes · Jenkins · Ansible |
+| **Infra** | AWS (S3 · CloudFront · MediaConvert · EventBridge · SQS · RDS · ECS · OpenSearch · ElastiCache · EKS) · Docker · Kubernetes · Jenkins · Ansible |
 | **Testing** | JUnit5 · MockK · Kotest · RestDocs (KotlinDSL) · K6 |
 | **Learning** | Rust + Axum |
 
