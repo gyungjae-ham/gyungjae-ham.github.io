@@ -11,14 +11,38 @@ type Props = {
 };
 
 const { page } = Astro.props;
-
 const t = useTranslations(Astro.currentLocale);
+
+function getPageNumbers(current: number, last: number): (number | "...")[] {
+  const pages: (number | "...")[] = [];
+  const window = 1;
+  for (let i = 1; i <= last; i++) {
+    if (
+      i === 1 ||
+      i === last ||
+      (i >= current - window && i <= current + window)
+    ) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== "...") {
+      pages.push("...");
+    }
+  }
+  return pages;
+}
+
+const basePath = Astro.url.pathname
+  .replace(/\/\d+\/?$/, "")
+  .replace(/\/$/, "");
+const urlForPage = (n: number) =>
+  n === 1 ? `${basePath}/` : `${basePath}/${n}/`;
+
+const pageNumbers = getPageNumbers(page.currentPage, page.lastPage);
 ---
 
 {
   page.lastPage > 1 && (
     <nav
-      class="mt-auto mb-8 flex justify-center gap-4"
+      class="mt-auto mb-8 flex flex-wrap items-center justify-center gap-2"
       role="navigation"
       aria-label="Pagination Navigation"
     >
@@ -31,7 +55,36 @@ const t = useTranslations(Astro.currentLocale);
         <IconArrowLeft class="inline-block rtl:rotate-180" />
         {t.pagination.prev}
       </LinkButton>
-      {page.currentPage} / {page.lastPage}
+
+      <ul class="flex flex-wrap items-center gap-1" aria-label="Page numbers">
+        {pageNumbers.map(p =>
+          p === "..." ? (
+            <li class="px-2 opacity-60 select-none" aria-hidden="true">
+              …
+            </li>
+          ) : p === page.currentPage ? (
+            <li>
+              <span
+                class="inline-block min-w-8 rounded px-3 py-1 text-center font-bold underline underline-offset-4"
+                aria-current="page"
+              >
+                {p}
+              </span>
+            </li>
+          ) : (
+            <li>
+              <a
+                href={urlForPage(p)}
+                class="inline-block min-w-8 rounded px-3 py-1 text-center hover:underline hover:underline-offset-4"
+                aria-label={`Page ${p}`}
+              >
+                {p}
+              </a>
+            </li>
+          )
+        )}
+      </ul>
+
       <LinkButton
         disabled={!page.url.next}
         href={page.url.next as string}
