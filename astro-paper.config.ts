@@ -2,14 +2,15 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-    url: "https://astro-paper.pages.dev/",
-    title: "AstroPaper",
-    description: "A minimal, responsive and SEO-friendly Astro blog theme.",
-    author: "Sat Naing",
-    profile: "https://satna.ing",
+    url: "https://gyungjae-ham.github.io/",
+    title: "무호흡냥냥펀치",
+    description:
+      "쉴 틈 없이 학습과 실무에 펀치를 날리는 백엔드 개발자의 기록장",
+    author: "luca",
+    profile: "https://github.com/gyungjae-ham",
     ogImage: "default-og.jpg",
-    lang: "en",
-    timezone: "Asia/Bangkok",
+    lang: "ko",
+    timezone: "Asia/Seoul",
     dir: "ltr",
   },
   posts: {
@@ -24,22 +25,18 @@ export default defineAstroPaperConfig({
     showBackButton: true,
     editPost: {
       enabled: true,
-      url: "https://github.com/satnaing/astro-paper/edit/main/",
+      url: "https://github.com/gyungjae-ham/gyungjae-ham.github.io/edit/main/",
     },
     search: "pagefind",
   },
   socials: [
-    { name: "github",   url: "https://github.com/satnaing/astro-paper" },
-    { name: "x",        url: "https://x.com/username" },
-    { name: "linkedin", url: "https://www.linkedin.com/in/username/" },
-    { name: "mail",     url: "mailto:yourmail@gmail.com" },
+    { name: "github", url: "https://github.com/gyungjae-ham" },
+    { name: "linkedin", url: "https://www.linkedin.com/in/gyungjae-ham/" },
+    { name: "mail", url: "mailto:gyeongjae.h.dev@gmail.com" },
   ],
   shareLinks: [
-    { name: "whatsapp", url: "https://wa.me/?text=" },
-    { name: "facebook", url: "https://www.facebook.com/sharer.php?u=" },
-    { name: "x",        url: "https://x.com/intent/post?url=" },
+    { name: "x", url: "https://x.com/intent/post?url=" },
     { name: "telegram", url: "https://t.me/share/url?url=" },
-    { name: "pinterest", url: "https://pinterest.com/pin/create/button/?url=" },
-    { name: "mail",     url: "mailto:?subject=See%20this%20post&body=" },
+    { name: "mail", url: "mailto:?subject=See%20this%20post&body=" },
   ],
 });
