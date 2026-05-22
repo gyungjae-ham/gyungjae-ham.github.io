@@ -13,8 +13,12 @@
       @apply text-foreground mb-3;
     }
 
+    h2 {
+      @apply mt-12 text-2xl font-bold;
+    }
+
     h3 {
-      @apply italic;
+      @apply mt-8 text-lg font-bold;
     }
 
     p,
