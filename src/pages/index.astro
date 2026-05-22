@@ -35,7 +35,7 @@ const homePath = getRelativeLocaleUrl(locale, "");
   >
     <section id="hero" class="border-border border-b pt-8 pb-6">
       <h1 class="my-4 inline-block text-4xl font-bold sm:my-8 sm:text-5xl">
-        Mingalaba
+        안녕하세요, Luca 입니다.
       </h1>
       <a
         target="_blank"
@@ -53,19 +53,18 @@ const homePath = getRelativeLocaleUrl(locale, "");
       </a>
 
       <p>
-        AstroPaper is a minimal, responsive, accessible and SEO-friendly Astro
-        blog theme. This theme follows best practices and provides accessibility
-        out of the box. Light and dark mode are supported by default. Moreover,
-        additional color schemes can also be configured.
+        5-6년차 백엔드 개발자입니다. Kotlin · Spring · Python · Django 위에서
+        일하며, 느린 코드의 진짜 병목을 찾아 수치로 끌어내리는 일을 좋아합니다.
       </p>
       <p class="mt-2">
-        Read the blog posts or check
+        이 블로그에는 설계 결정의 트레이드오프와 실측 수치를 기록합니다. 자세한
+        소개는
         <LinkButton
           class="hover:text-accent underline decoration-dashed underline-offset-4"
-          href="https://github.com/satnaing/astro-paper#readme"
+          href={getRelativeLocaleUrl(locale, "about")}
         >
-          README
-        </LinkButton> for more info.
+          About
+        </LinkButton> 페이지에 있습니다.
       </p>
       {
         socials.length > 0 && (
