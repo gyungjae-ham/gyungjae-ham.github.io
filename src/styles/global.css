@@ -17,8 +17,8 @@
 
   html {
     font-family: var(--font-sans-kr);
-    font-size: 17px;
-    line-height: 1.75;
+    font-size: 15px;
+    line-height: 1.7;
     word-break: keep-all;
     overflow-wrap: break-word;
   }
