@@ -1,9 +1,9 @@
 ---
 title: About
-description: 5-6년차 Kotlin/Spring·Python/Django 백엔드 개발자 함경재(Luca). 대용량 트래픽 처리와 시스템 최적화 중심의 경력 요약입니다.
+description: 5-6년차 Kotlin/Spring 백엔드 개발자 함경재(Luca). 대용량 트래픽 처리와 시스템 최적화 중심의 경력 요약입니다.
 ---
 
-> 안녕하세요, 백엔드 개발자 **함경재 (Luca)** 입니다. Kotlin · Spring Boot · Python · Django 위에서 일하며, 느린 코드의 진짜 병목을 찾아 개선하는 것을 좋아합니다.
+> 안녕하세요, 백엔드 개발자 **함경재 (Luca)** 입니다. Kotlin · Spring Boot 위에서 일하며, 느린 코드의 진짜 병목을 찾아 개선하는 것을 좋아합니다.
 
 ## Highlights
 
