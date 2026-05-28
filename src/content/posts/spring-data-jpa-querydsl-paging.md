@@ -174,7 +174,7 @@ public Page<MemberTeamDto> searchPageComplex(MemberSearchCondition condition, Pa
         long total = queryFactory
                         .select(member)
                         .from(member)
-                        .leftjoin(member.team, team)
+                        .leftJoin(member.team, team)
                         .where(usernameEq(condition.getUsername()),
                                teamNameEq(condition.getTeamName()),
                                ageGoe(condition.getAgeGoe()),
@@ -206,7 +206,7 @@ public Page<MemberTeamDto> searchPageComplex(MemberSearchCondition condition, Pa
 JPAQuery<Member> countQuery = queryFactory
         .select(member)
         .from(member)
-        .leftjoin(member.team, team)
+        .leftJoin(member.team, team)
         .where(usernameEq(condition.getUsername()),
                teamNameEq(condition.getTeamName()),
                ageGoe(condition.getAgeGoe()),

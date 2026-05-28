@@ -42,4 +42,4 @@ management.endpoints.web.cors.allowed-origins: http://other-domain.com
 management.endpoints.web.cors.allowed-methods: GET,POST
 ```
 
-우선 이 기록에서는 `Actuator` 가 무슨 기능을 가지고 있는지 확인해봤습니다. 추후에 기능을 추가하거나 적용할 때 별도로 기록할 예정입니다.
+여기까지가 `Actuator` 의 기본 기능 정리입니다.

@@ -70,4 +70,4 @@ Entity 클래스 위에는 다음을 표시해야 합니다.
 
 이 애노테이션이 있어야 해당 클래스에서 Auditing 기능이 동작합니다.
 
-> 참고: Spring Boot Security 구현 후 `JpaConfig` 부분이 업데이트될 예정입니다.
+> 참고: Spring Boot Security 가 적용되면 `auditorAware` 의 반환값은 `SecurityContextHolder` 에서 가져온 인증 정보로 대체합니다.

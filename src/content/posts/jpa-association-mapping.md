@@ -44,7 +44,7 @@ Long memberId = order.getMemberId();
 Member findMember = em.find(Member.class, memberId);
 ```
 
-**더 나은 접근**은 객체 참조를 사용하는 것입니다.
+객체 참조를 사용하면 다음과 같이 바뀝니다.
 
 ```java
 @Entity
@@ -101,10 +101,8 @@ public class Team {
 
 ## 연관관계의 주인과 mappedBy
 
-**핵심 차이**
-
-- **객체 관계**: 단방향 연결 2개
-- **테이블 관계**: 외래키 1개로 표현되는 양방향 연결
+- **객체 관계**: 단방향 연결 2개로 양방향을 흉내냅니다.
+- **테이블 관계**: 외래키 1개로 양방향 연결을 표현합니다.
 
 **양방향 매핑 규칙**
 

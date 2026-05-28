@@ -685,7 +685,3 @@ String result = queryFactory
 ```
 
 > `member.age.stringValue()` 로 문자가 아닌 타입을 문자로 변환할 수 있습니다. 이 방법은 ENUM 처리에도 자주 사용됩니다.
-
-## 다음 포스트
-
-프로젝션과 결과 반환, 동적 쿼리, 벌크 쿼리.

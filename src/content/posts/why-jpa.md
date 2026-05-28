@@ -60,8 +60,8 @@ member1 == member2 // 같다
 
 #### 1차 캐시와 동일성 보장
 
-- 같은 트랜잭션 안에서는 같은 엔티티를 반환합니다 — 약간의 조회 성능 향상이 있으며 위 조회에서 SQL은 1번만 실행됩니다.
-- DB Isolation Level이 `Read Commit`이어도 애플리케이션에서 `Repeatable Read`를 보장합니다.
+- 같은 트랜잭션 안에서는 같은 엔티티를 반환합니다 — 위 조회에서 SQL은 1번만 실행됩니다.
+- DB Isolation Level이 `Read Committed`여도 애플리케이션 레벨에서 `Repeatable Read`를 보장합니다.
 
 #### 트랜잭션을 지원하는 쓰기 지연 — INSERT
 
