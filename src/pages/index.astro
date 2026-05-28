@@ -25,11 +25,12 @@ const explicitFeatured = sortedPosts.filter(({ data }) => data.featured);
 const autoFilled = sortedPosts
   .filter(({ data }) => !data.featured)
   .slice(0, Math.max(0, FEATURED_COUNT - explicitFeatured.length));
-const featuredPosts = [...explicitFeatured, ...autoFilled];
-const autoFilledSlugs = new Set(autoFilled.map(({ id }) => id));
-const recentPosts = sortedPosts.filter(
-  ({ id, data }) => !data.featured && !autoFilledSlugs.has(id)
-);
+const featuredIds = new Set([
+  ...explicitFeatured.map(({ id }) => id),
+  ...autoFilled.map(({ id }) => id),
+]);
+const featuredPosts = sortedPosts.filter(({ id }) => featuredIds.has(id));
+const recentPosts = sortedPosts.filter(({ id }) => !featuredIds.has(id));
 const homePath = getRelativeLocaleUrl(locale, "");
 ---
 
