@@ -20,8 +20,16 @@ const t = useTranslations(locale);
 
 const posts = await getCollection("posts");
 const sortedPosts = getSortedPosts(posts);
-const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
-const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
+const FEATURED_COUNT = 3;
+const explicitFeatured = sortedPosts.filter(({ data }) => data.featured);
+const autoFilled = sortedPosts
+  .filter(({ data }) => !data.featured)
+  .slice(0, Math.max(0, FEATURED_COUNT - explicitFeatured.length));
+const featuredPosts = [...explicitFeatured, ...autoFilled];
+const autoFilledSlugs = new Set(autoFilled.map(({ id }) => id));
+const recentPosts = sortedPosts.filter(
+  ({ id, data }) => !data.featured && !autoFilledSlugs.has(id)
+);
 const homePath = getRelativeLocaleUrl(locale, "");
 ---
 
