@@ -15,6 +15,7 @@ import {
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
 import { transformerFileName } from "./src/utils/transformers/fileName";
+import { devPublishPlugin } from "./scripts/dev-publish-plugin";
 import config from "./astro-paper.config";
 
 export default defineConfig({
@@ -48,7 +49,7 @@ export default defineConfig({
     },
   },
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), devPublishPlugin()],
   },
   fonts: [
     {
