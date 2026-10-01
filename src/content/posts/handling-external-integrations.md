@@ -5,7 +5,15 @@ title: "외부 연동을 다루는 방법 — 의존성 역전으로 테스트 �
 slug: "handling-external-integrations"
 featured: false
 draft: false
-tags: ["architecture", "external-api", "testing", "dependency-injection", "spring", "kotlin"]
+tags:
+  [
+    "architecture",
+    "external-api",
+    "testing",
+    "dependency-injection",
+    "spring",
+    "kotlin",
+  ]
 description: "Service 가 JavaMailSender 에 직접 의존할 때 생기는 문제와, 도메인 포트 / 인프라 어댑터로 뒤집은 뒤 얻는 테스트 용이성·운영 이득을 정리."
 ---
 

@@ -40,12 +40,12 @@ description: "@Entity·@Table·@Column 부터 기본 키 생성 전략(IDENTITY�
 
 `@Table`은 엔티티와 매핑할 테이블을 지정합니다.
 
-| 속성 | 기능 | 기본값 |
-|------|------|-------|
-| `name` | 매핑할 테이블 이름 | 엔티티 이름을 사용 |
-| `catalog` | 데이터베이스 catalog 매핑 | |
-| `schema` | 데이터베이스 schema 매핑 | |
-| `uniqueConstraints` (DDL) | DDL 생성 시 유니크 제약 조건 생성 | |
+| 속성                      | 기능                              | 기본값             |
+| ------------------------- | --------------------------------- | ------------------ |
+| `name`                    | 매핑할 테이블 이름                | 엔티티 이름을 사용 |
+| `catalog`                 | 데이터베이스 catalog 매핑         |                    |
+| `schema`                  | 데이터베이스 schema 매핑          |                    |
+| `uniqueConstraints` (DDL) | DDL 생성 시 유니크 제약 조건 생성 |                    |
 
 ## 데이터베이스 스키마 자동 생성
 
@@ -57,13 +57,13 @@ description: "@Entity·@Table·@Column 부터 기본 키 생성 전략(IDENTITY�
 
 ### hibernate.hbm2ddl.auto 속성
 
-| 옵션 | 설명 |
-|------|------|
-| `create` | 기존 테이블 삭제 후 다시 생성 (`DROP` + `CREATE`) |
-| `create-drop` | `create`와 같으나 종료 시점에 테이블 `DROP` |
-| `update` | 변경분만 반영 (운영 DB에는 사용하면 안 됨) |
-| `validate` | 엔티티와 테이블이 정상 매핑되었는지만 확인 |
-| `none` | 사용하지 않음 |
+| 옵션          | 설명                                              |
+| ------------- | ------------------------------------------------- |
+| `create`      | 기존 테이블 삭제 후 다시 생성 (`DROP` + `CREATE`) |
+| `create-drop` | `create`와 같으나 종료 시점에 테이블 `DROP`       |
+| `update`      | 변경분만 반영 (운영 DB에는 사용하면 안 됨)        |
+| `validate`    | 엔티티와 테이블이 정상 매핑되었는지만 확인        |
+| `none`        | 사용하지 않음                                     |
 
 ### 주의할 점
 
@@ -81,32 +81,32 @@ description: "@Entity·@Table·@Column 부터 기본 키 생성 전략(IDENTITY�
 
 ## 필드와 컬럼 매핑
 
-| 어노테이션 | 설명 |
-|-----------|------|
-| `@Column` | 컬럼 매핑 |
-| `@Temporal` | 날짜 타입 매핑 (`DATE`, `TIME`, `TIMESTAMP`) |
-| `@Enumerated` | `enum` 타입 매핑 |
-| `@Lob` | `BLOB`, `CLOB` 매핑 |
-| `@Transient` | 특정 필드를 컬럼에 매핑하지 않음 |
+| 어노테이션    | 설명                                         |
+| ------------- | -------------------------------------------- |
+| `@Column`     | 컬럼 매핑                                    |
+| `@Temporal`   | 날짜 타입 매핑 (`DATE`, `TIME`, `TIMESTAMP`) |
+| `@Enumerated` | `enum` 타입 매핑                             |
+| `@Lob`        | `BLOB`, `CLOB` 매핑                          |
+| `@Transient`  | 특정 필드를 컬럼에 매핑하지 않음             |
 
 ### @Column
 
-| 속성 | 설명 | 기본값 |
-|------|------|-------|
-| `name` | 필드와 매핑할 테이블의 컬럼 이름 | 객체의 필드 이름 |
-| `insertable`, `updatable` | 등록, 변경 가능 여부 | `TRUE` |
-| `nullable` (DDL) | `null` 값 허용 여부 | |
-| `unique` (DDL) | 유니크 제약조건 | |
-| `columnDefinition` (DDL) | 데이터베이스 컬럼 정보를 직접 지정 | |
-| `length` (DDL) | 문자 길이 제약조건 (`String` 타입만) | 255 |
-| `precision`, `scale` (DDL) | `BigDecimal` 타입에서 사용 | `precision = 19`, `scale = 2` |
+| 속성                       | 설명                                 | 기본값                        |
+| -------------------------- | ------------------------------------ | ----------------------------- |
+| `name`                     | 필드와 매핑할 테이블의 컬럼 이름     | 객체의 필드 이름              |
+| `insertable`, `updatable`  | 등록, 변경 가능 여부                 | `TRUE`                        |
+| `nullable` (DDL)           | `null` 값 허용 여부                  |                               |
+| `unique` (DDL)             | 유니크 제약조건                      |                               |
+| `columnDefinition` (DDL)   | 데이터베이스 컬럼 정보를 직접 지정   |                               |
+| `length` (DDL)             | 문자 길이 제약조건 (`String` 타입만) | 255                           |
+| `precision`, `scale` (DDL) | `BigDecimal` 타입에서 사용           | `precision = 19`, `scale = 2` |
 
 ### @Enumerated
 
 자바 `enum` 타입을 매핑할 때 사용합니다.
 
-| 속성 | 설명 | 기본값 |
-|------|------|-------|
+| 속성    | 설명                                                    | 기본값             |
+| ------- | ------------------------------------------------------- | ------------------ |
 | `value` | `EnumType.ORDINAL` (순서) 또는 `EnumType.STRING` (이름) | `EnumType.ORDINAL` |
 
 **주의**: `ORDINAL`을 사용하면 `enum`에 새로운 타입을 추가할 때 기존 데이터의 매핑이 깨질 수 있으므로 반드시 **`STRING`을 사용**합니다.
@@ -117,8 +117,8 @@ description: "@Entity·@Table·@Column 부터 기본 키 생성 전략(IDENTITY�
 
 참고: `LocalDate`, `LocalDateTime`을 사용할 때는 생략이 가능합니다.
 
-| 속성 | 설명 |
-|------|------|
+| 속성    | 설명                                                                 |
+| ------- | -------------------------------------------------------------------- |
 | `value` | `TemporalType.DATE` (날짜), `TIME` (시간), `TIMESTAMP` (날짜와 시간) |
 
 ### @Lob
@@ -200,13 +200,13 @@ public class Member {
 
 #### @SequenceGenerator 속성
 
-| 속성 | 설명 | 기본값 |
-|------|------|-------|
-| `name` | 식별자 생성기 이름 | 필수 |
-| `sequenceName` | 데이터베이스에 등록된 시퀀스 이름 | `hibernate_sequence` |
-| `initialValue` | DDL 생성 시 시퀀스 시작 수 | 1 |
-| `allocationSize` | 시퀀스 한 번 호출에 증가하는 수 | 50 |
-| `catalog`, `schema` | 데이터베이스 catalog, schema 이름 | |
+| 속성                | 설명                              | 기본값               |
+| ------------------- | --------------------------------- | -------------------- |
+| `name`              | 식별자 생성기 이름                | 필수                 |
+| `sequenceName`      | 데이터베이스에 등록된 시퀀스 이름 | `hibernate_sequence` |
+| `initialValue`      | DDL 생성 시 시퀀스 시작 수        | 1                    |
+| `allocationSize`    | 시퀀스 한 번 호출에 증가하는 수   | 50                   |
+| `catalog`, `schema` | 데이터베이스 catalog, schema 이름 |                      |
 
 ### TABLE 전략
 
@@ -245,17 +245,17 @@ public class Member {
 
 #### @TableGenerator 속성
 
-| 속성 | 설명 | 기본값 |
-|------|------|-------|
-| `name` | 식별자 생성기 이름 | 필수 |
-| `table` | 키 생성 테이블명 | `hibernate_sequences` |
-| `pkColumnName` | 시퀀스 컬럼명 | `sequence_name` |
-| `valueColumnName` | 시퀀스 값 컬럼명 | `next_val` |
-| `pkColumnValue` | 키로 사용할 값 이름 | 엔티티 이름 |
-| `initialValue` | 초기 값 | 0 |
-| `allocationSize` | 시퀀스 한 번 호출에 증가하는 수 | 50 |
-| `catalog`, `schema` | 데이터베이스 catalog, schema | |
-| `uniqueConstraints` (DDL) | 유니크 제약 조건 | |
+| 속성                      | 설명                            | 기본값                |
+| ------------------------- | ------------------------------- | --------------------- |
+| `name`                    | 식별자 생성기 이름              | 필수                  |
+| `table`                   | 키 생성 테이블명                | `hibernate_sequences` |
+| `pkColumnName`            | 시퀀스 컬럼명                   | `sequence_name`       |
+| `valueColumnName`         | 시퀀스 값 컬럼명                | `next_val`            |
+| `pkColumnValue`           | 키로 사용할 값 이름             | 엔티티 이름           |
+| `initialValue`            | 초기 값                         | 0                     |
+| `allocationSize`          | 시퀀스 한 번 호출에 증가하는 수 | 50                    |
+| `catalog`, `schema`       | 데이터베이스 catalog, schema    |                       |
+| `uniqueConstraints` (DDL) | 유니크 제약 조건                |                       |
 
 ## 권장하는 식별자 전략
 

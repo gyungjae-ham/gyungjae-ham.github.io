@@ -29,11 +29,11 @@ CRM 발송은 카카오 플러스친구, 앱푸시처럼 한 번에 수만에서
 
 가장 먼저 떠오르는 답은 CloudWatch 메트릭 기반 동적 오토스케일링입니다. CPU나 요청 수가 올라가면 알아서 스케일 아웃하는 방식이라, 발송을 몰라도 대응합니다. 그런데 이 워크로드에는 맞지 않는다고 봤습니다.
 
-| 방식 | 장점 | 단점 |
-|---|---|---|
-| 메트릭 기반 동적 스케일 | 발송을 몰라도 자동 대응, 입력 불필요 | 발송 트래픽은 순간 스파이크 — 스케일 아웃이 따라붙는 사이 응답 지연·장애. 시점을 미리 아는데 늦게 반응하는 셈 |
-| 매번 수동 스케줄 등록 | 예약형이라 사전 증설 가능 | 결국 사람이 매번 등록 — 수동의 연장, 누락 위험 그대로 |
-| 발송 공지를 트리거로 예약 액션 자동 등록 | 시점을 미리 알기에 무인 사전 증설, 입력 한 번으로 끝 | 트리거·정책·등록 파이프라인을 직접 만들어야 함 |
+| 방식                                     | 장점                                                 | 단점                                                                                                          |
+| ---------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 메트릭 기반 동적 스케일                  | 발송을 몰라도 자동 대응, 입력 불필요                 | 발송 트래픽은 순간 스파이크 — 스케일 아웃이 따라붙는 사이 응답 지연·장애. 시점을 미리 아는데 늦게 반응하는 셈 |
+| 매번 수동 스케줄 등록                    | 예약형이라 사전 증설 가능                            | 결국 사람이 매번 등록 — 수동의 연장, 누락 위험 그대로                                                         |
+| 발송 공지를 트리거로 예약 액션 자동 등록 | 시점을 미리 알기에 무인 사전 증설, 입력 한 번으로 끝 | 트리거·정책·등록 파이프라인을 직접 만들어야 함                                                                |
 
 핵심은 **발송 시점은 사람이 미리 알고 있다**는 점입니다. 미래에 트래픽이 언제 몰릴지 아는데 메트릭이 올라가길 기다렸다가 그제야 반응하는 건 손해입니다. 스파이크가 순식간이라 스케일 아웃이 따라붙기 전에 피크가 지나갑니다.
 
@@ -105,16 +105,18 @@ export const determineScalingForPopulation = (
 ```typescript
 // 발송 5분 전 증설
 await putEcsScheduledAction({
-  scheduledActionName: buildScheduleName(dt.date, dt.time, 'out'),
-  clusterName, serviceName,
+  scheduledActionName: buildScheduleName(dt.date, dt.time, "out"),
+  clusterName,
+  serviceName,
   scheduleAt: calculateScaleOutTime(dt.date, dt.time),
   minCapacity: decision.outCapacity.minCapacity,
   maxCapacity: decision.outCapacity.maxCapacity,
 });
 // 발송 1시간 40분 후 복귀 — 같은 흐름에서 함께 등록
 await putEcsScheduledAction({
-  scheduledActionName: buildScheduleName(dt.date, dt.time, 'in'),
-  clusterName, serviceName,
+  scheduledActionName: buildScheduleName(dt.date, dt.time, "in"),
+  clusterName,
+  serviceName,
   scheduleAt: calculateScaleInTime(dt.date, dt.time),
   minCapacity: decision.inCapacity.minCapacity,
   maxCapacity: decision.inCapacity.maxCapacity,
@@ -135,14 +137,19 @@ let baseline: EcsScalableTargetCapacity | null = null;
 try {
   baseline = await describeEcsScalableTarget(clusterName, serviceName);
 } catch (err) {
-  console.error('현재 ECS ScalableTarget 조회 중 오류:', err);
+  console.error("현재 ECS ScalableTarget 조회 중 오류:", err);
 }
 
 if (!baseline) {
   // 자동 증설을 못 했으니 담당자가 수동 확인하도록 Slack 스레드에 알린다
-  await postMessage(slackBotToken, channelId, '인프라 설정 조회 실패 — 수동 확인 필요', {
-    threadTs: messageTs,
-  });
+  await postMessage(
+    slackBotToken,
+    channelId,
+    "인프라 설정 조회 실패 — 수동 확인 필요",
+    {
+      threadTs: messageTs,
+    }
+  );
   return;
 }
 ```
@@ -151,13 +158,13 @@ if (!baseline) {
 
 ## 결과
 
-| 항목 | 전 | 후 |
-|---|---|---|
-| 개발자 수동 운영 시간 | 주 5회+ × 1시간+ ≈ 월 20시간+ | 0 (개발자 개입 없음) |
-| 발송 1건당 개발자 개입 | 1시간 이상 | 0분 (담당자 모달 입력 수 분으로 이관) |
-| 증설 누락 사고 | 발생 이력 있음 | 0건 |
-| 발송 후 복귀 누락 | 사람 기억에 의존 | 구조적으로 불가 (증설·복귀 동시 예약) |
-| baseline 변경 대응 | 코드 수정 필요 | 코드 수정 0 (실시간 조회) |
+| 항목                   | 전                            | 후                                    |
+| ---------------------- | ----------------------------- | ------------------------------------- |
+| 개발자 수동 운영 시간  | 주 5회+ × 1시간+ ≈ 월 20시간+ | 0 (개발자 개입 없음)                  |
+| 발송 1건당 개발자 개입 | 1시간 이상                    | 0분 (담당자 모달 입력 수 분으로 이관) |
+| 증설 누락 사고         | 발생 이력 있음                | 0건                                   |
+| 발송 후 복귀 누락      | 사람 기억에 의존              | 구조적으로 불가 (증설·복귀 동시 예약) |
+| baseline 변경 대응     | 코드 수정 필요                | 코드 수정 0 (실시간 조회)             |
 
 수치는 발송 빈도(주 5회 초과)와 1회 소요(1시간 이상)에 기반한 추정입니다. 절대 태스크 수와 비용 같은 회사 내부 수치는 옮기지 않았습니다.
 

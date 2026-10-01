@@ -3,7 +3,15 @@ author: "luca"
 title: "ObjectMapper 의 예외 계층을 잘못 잡고 있었다 — JsonProcessingException 과 JsonMappingException 의 진짜 관계"
 description: "JsonProcessingException 과 JsonMappingException 을 따로 catch 했는데 후자는 닿지도 않는 코드였습니다. 예외 계층을 정확히 보지 않은 채로 catch 를 늘리던 습관을 정리하고, Wrapper 패턴으로 정돈합니다."
 slug: "objectmapper-exception-hierarchy"
-tags: ["spring", "objectmapper", "jackson", "exception-handling", "error-handling", "kotlin"]
+tags:
+  [
+    "spring",
+    "objectmapper",
+    "jackson",
+    "exception-handling",
+    "error-handling",
+    "kotlin",
+  ]
 pubDatetime: 2024-12-25T12:13:00+09:00
 modDatetime: 2026-05-23T00:00:00+09:00
 featured: false
@@ -50,13 +58,13 @@ try {
 
 try-catch 로 예외를 처리하는 대신, ObjectMapper 의 설정으로 예외 발생 자체를 줄일 수 있는 자리가 있습니다. 카테고리별 옵션을 전부 나열할 수도 있지만, 실무에서 가장 자주 쓰는 다섯 개로 좁히면 다음과 같습니다.
 
-| 옵션 | 효과 | 언제 켜는가 |
-|---|---|---|
-| `DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES = false` | 알 수 없는 필드를 무시 | 클라이언트가 잉여 필드를 자주 보낼 때 |
-| `SerializationFeature.WRITE_DATES_AS_TIMESTAMPS = false` | 날짜를 ISO-8601 로 직렬화 | 프론트와 시간 포맷을 맞출 때 |
-| `JavaTimeModule()` 등록 | `LocalDateTime` 등 Java 8 시간 타입 지원 | Kotlin/Java 17 환경의 기본 세팅 |
-| `PropertyNamingStrategies.SNAKE_CASE` | snake_case 와 camelCase 자동 변환 | 외부 API 명명 규칙과 다를 때 |
-| `DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY = true` | 단일 값을 배열로 받기 | 일부 클라이언트가 길이 1 배열을 단일 값으로 보낼 때 |
+| 옵션                                                         | 효과                                     | 언제 켜는가                                         |
+| ------------------------------------------------------------ | ---------------------------------------- | --------------------------------------------------- |
+| `DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES = false`  | 알 수 없는 필드를 무시                   | 클라이언트가 잉여 필드를 자주 보낼 때               |
+| `SerializationFeature.WRITE_DATES_AS_TIMESTAMPS = false`     | 날짜를 ISO-8601 로 직렬화                | 프론트와 시간 포맷을 맞출 때                        |
+| `JavaTimeModule()` 등록                                      | `LocalDateTime` 등 Java 8 시간 타입 지원 | Kotlin/Java 17 환경의 기본 세팅                     |
+| `PropertyNamingStrategies.SNAKE_CASE`                        | snake_case 와 camelCase 자동 변환        | 외부 API 명명 규칙과 다를 때                        |
+| `DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY = true` | 단일 값을 배열로 받기                    | 일부 클라이언트가 길이 1 배열을 단일 값으로 보낼 때 |
 
 이 다섯 가지만 잘 설정해 두어도 매핑 단계에서 던져지는 예외의 대부분이 사라집니다. 설정으로 막을 수 있는 예외를 catch 로 막는 일이 잦았다는 게 자기 개정의 핵심입니다. catch 줄을 늘리는 자리에서 한 번 더 묻게 됩니다. "이 catch 는 정말 잡아야 하는 예외인가, 아니면 설정 한 줄로 사라질 예외인가."
 

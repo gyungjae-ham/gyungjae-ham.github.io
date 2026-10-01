@@ -62,13 +62,13 @@ description: "Spring Boot 가 HikariCP 를 기본 선택하는 이유와, 자주
 
 MySQL 을 쓸 때 HikariCP 의 `data-source-properties` 에 자주 얹는 옵션을 한 표로 압축합니다. 권장값은 출발점일 뿐이고, 옆 칸의 함정을 같이 보는 게 본 의도입니다.
 
-| 옵션 | 권장값 | 효과 · 함정 |
-|---|---|---|
-| `cachePrepStmts` | `true` | PreparedStatement 캐싱 활성화. 이게 `false` 면 아래 캐시 옵션이 전부 무시 |
-| `prepStmtCacheSize` | 250 | 커넥션당 캐시할 Statement 수. 기본 25 는 ORM 환경에 너무 작음 |
-| `prepStmtCacheSqlLimit` | 2048 | 캐시할 SQL 길이 상한. 기본 256 이면 Hibernate 쿼리 대부분이 캐시 미스 |
-| `useServerPrepStmts` | `true` | 서버 측 PreparedStatement. 템플릿은 서버에 두고 파라미터만 전송 |
-| `rewriteBatchedStatements` | `true` | 배치 INSERT/UPDATE 를 단일 멀티 row 구문으로 재작성 |
+| 옵션                       | 권장값 | 효과 · 함정                                                               |
+| -------------------------- | ------ | ------------------------------------------------------------------------- |
+| `cachePrepStmts`           | `true` | PreparedStatement 캐싱 활성화. 이게 `false` 면 아래 캐시 옵션이 전부 무시 |
+| `prepStmtCacheSize`        | 250    | 커넥션당 캐시할 Statement 수. 기본 25 는 ORM 환경에 너무 작음             |
+| `prepStmtCacheSqlLimit`    | 2048   | 캐시할 SQL 길이 상한. 기본 256 이면 Hibernate 쿼리 대부분이 캐시 미스     |
+| `useServerPrepStmts`       | `true` | 서버 측 PreparedStatement. 템플릿은 서버에 두고 파라미터만 전송           |
+| `rewriteBatchedStatements` | `true` | 배치 INSERT/UPDATE 를 단일 멀티 row 구문으로 재작성                       |
 
 이 다섯 개가 MySQL + HikariCP 조합에서 거의 항상 켜두는 옵션입니다. PostgreSQL 도 같은 결로 `max_connections`·`idle_in_transaction_session_timeout` 을 함께 손봅니다. DB 서버 측 설정과 풀 옵션은 늘 짝으로 움직입니다.
 
@@ -84,8 +84,8 @@ spring:
     hikari:
       maximum-pool-size: 10
       connection-timeout: 5000
-      idle-timeout: 300000      # 5분
-      max-lifetime: 1200000     # 20분, DB wait_timeout 보다 짧게
+      idle-timeout: 300000 # 5분
+      max-lifetime: 1200000 # 20분, DB wait_timeout 보다 짧게
       data-source-properties:
         cachePrepStmts: true
         prepStmtCacheSize: 250

@@ -5,7 +5,16 @@ title: "athlog 영상 100MB mp4 → 2MB 미만 HLS segment: MediaConvert 를 포
 slug: "athlog-video-hls-redesign"
 featured: true
 draft: false
-tags: ["hls", "ffmpeg", "celery", "video-streaming", "aws", "django", "architecture"]
+tags:
+  [
+    "hls",
+    "ffmpeg",
+    "celery",
+    "video-streaming",
+    "aws",
+    "django",
+    "architecture",
+  ]
 description: "DAU 13만 / MAU 180만 athlog 영상이 첫 청크부터 100MB 를 다운로드받던 구조를 6초 HLS segment 로 자른 회고. 처음엔 MediaConvert + EventBridge 를 설계했지만 ffmpeg + Celery indexing 큐로 돌아선 이유까지."
 ---
 
@@ -32,23 +41,23 @@ description: "DAU 13만 / MAU 180만 athlog 영상이 첫 청크부터 100MB 를
 
 처음엔 "용량을 줄이면 풀리겠다" 고 보고 FE 압축을 만지작거렸지만, 이게 잘못된 진단이었습니다. 첫 프레임 5초는 용량의 문제가 아니라 **적응형 스트리밍 부재가 원인** 입니다. 영상이 짧아도 단일 mp4 는 전체 파일이 어느 정도 버퍼링되어야 재생이 시작됩니다. "잘게 자르고 점진적으로 다운로드" 라는 방향이 옳았습니다.
 
-| 요구사항 | 내용 |
-|---|---|
-| **성능** | 첫 프레임 1초 이내 |
-| **호환성** | 안드로이드 · 웹 · iOS 모두 정상 재생 (특히 타겟 35세+ 남성·40대 구형 폰) |
-| **신뢰성** | 일부 기기 튕김 0건, 변환 중 mp4 노출 0건 |
-| **운영 제약** | 백엔드 1인이 dev·stg·prod 인프라까지 통제 |
-| **시간** | 1주 내 prod 전 검증 가능한 단순성 |
+| 요구사항      | 내용                                                                     |
+| ------------- | ------------------------------------------------------------------------ |
+| **성능**      | 첫 프레임 1초 이내                                                       |
+| **호환성**    | 안드로이드 · 웹 · iOS 모두 정상 재생 (특히 타겟 35세+ 남성·40대 구형 폰) |
+| **신뢰성**    | 일부 기기 튕김 0건, 변환 중 mp4 노출 0건                                 |
+| **운영 제약** | 백엔드 1인이 dev·stg·prod 인프라까지 통제                                |
+| **시간**      | 1주 내 prod 전 검증 가능한 단순성                                        |
 
 ## 후보 셋, 그리고 매니지드를 일찍 의심한 이유
 
 DAU 13만 / MAU 180만이라는 규모만 보면 매니지드를 깔고 싶어집니다. 다만 영상 자체가 60초 내외라는 점이 결정의 축이 됐습니다. 세 후보만 진지하게 봤습니다.
 
-| 후보 | 핵심 아이디어 | 장점 | 단점 |
-|---|---|---|---|
-| **A. AWS MediaConvert (매니지드)** | S3 원본 → MediaConvert HLS 변환 → CloudFront → EventBridge 비동기 알림 | 안정성·확장성, AWS 가 SLA 책임, job queue 자동 관리 | IAM·job queue·webhook 구성 부담, dev/test 환경에 띄우기 복잡, 분당 과금, **영상 60초 내외에 매니지드는 명백히 과함** |
-| **B. ffmpeg + Celery 자체 변환** | 기존 Celery 인프라 + `ffmpeg` 컨테이너로 자체 HLS 변환 | 기존 인프라 재사용 (Celery + S3), 비용 0, dev 환경 복잡도 0, 코드 일관성 | `ffmpeg` 컨테이너 추가 필요, OOM·hang 책임을 자체 부담 |
-| **C. 동기 변환** | 요청 응답 안에서 `ffmpeg` 호출 | 단순 구현 | nginx·Django 워커 점유, 사용자 체감 latency 큼, **100MB 변환을 동기로 처리 부적합** |
+| 후보                               | 핵심 아이디어                                                          | 장점                                                                     | 단점                                                                                                                 |
+| ---------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| **A. AWS MediaConvert (매니지드)** | S3 원본 → MediaConvert HLS 변환 → CloudFront → EventBridge 비동기 알림 | 안정성·확장성, AWS 가 SLA 책임, job queue 자동 관리                      | IAM·job queue·webhook 구성 부담, dev/test 환경에 띄우기 복잡, 분당 과금, **영상 60초 내외에 매니지드는 명백히 과함** |
+| **B. ffmpeg + Celery 자체 변환**   | 기존 Celery 인프라 + `ffmpeg` 컨테이너로 자체 HLS 변환                 | 기존 인프라 재사용 (Celery + S3), 비용 0, dev 환경 복잡도 0, 코드 일관성 | `ffmpeg` 컨테이너 추가 필요, OOM·hang 책임을 자체 부담                                                               |
+| **C. 동기 변환**                   | 요청 응답 안에서 `ffmpeg` 호출                                         | 단순 구현                                                                | nginx·Django 워커 점유, 사용자 체감 latency 큼, **100MB 변환을 동기로 처리 부적합**                                  |
 
 Elastic Transcoder · GCP Transcoder · Cloudflare Stream · MUX 같은 다른 매니지드도 후보에 올릴 수 있었지만, 영상 길이·트래픽 규모에 비해 명백히 과한 인프라라 일찍 기각했습니다. "큰 서비스니까 무거운 도구" 가 아니라 "문제의 모양에 맞는 도구" 가 기준이었습니다.
 
@@ -125,12 +134,12 @@ presigned 는 `temp/uploads/{uuid}` 에 올리고, 콘텐츠 등록 트랜잭션
 
 해결은 단순합니다. 영상 포함 콘텐츠는 등록 시 무조건 HIDDEN 으로 INSERT 하고, 운영자가 입력한 status 는 `desired_status` 라는 태스크 인자로 캡처해 들고 갑니다. 변환 완료 시 그 `desired_status` 로 복원합니다.
 
-| 항목 | 옵션 A (자동 PUBLISHED) | 옵션 B (상태 캡처) — 채택 |
-|---|---|---|
-| 변환 완료 후 status | 무조건 PUBLISHED | 운영자가 입력한 status (PUBLISHED / HIDDEN) |
-| 운영자 의도 보존 | ❌ | ✅ |
-| race condition | 동시 변환 시 PUBLISHED 중복 발화 | `has_pending_hls_video_for_content` 가드로 마지막 태스크만 status 복원 |
-| 변환 실패 시 | PUBLISHED 가 안 됨, mp4 노출 위험 | HIDDEN 유지, mp4 노출 0 |
+| 항목                | 옵션 A (자동 PUBLISHED)           | 옵션 B (상태 캡처) — 채택                                              |
+| ------------------- | --------------------------------- | ---------------------------------------------------------------------- |
+| 변환 완료 후 status | 무조건 PUBLISHED                  | 운영자가 입력한 status (PUBLISHED / HIDDEN)                            |
+| 운영자 의도 보존    | ❌                                | ✅                                                                     |
+| race condition      | 동시 변환 시 PUBLISHED 중복 발화  | `has_pending_hls_video_for_content` 가드로 마지막 태스크만 status 복원 |
+| 변환 실패 시        | PUBLISHED 가 안 됨, mp4 노출 위험 | HIDDEN 유지, mp4 노출 0                                                |
 
 ### 3) Celery indexing 큐에 변환 task 동거 — 새 워커 없이 자원 확보
 
@@ -188,14 +197,14 @@ cache 정책은 기본값을 유지하고, OAC (Origin Access Control) 로 S3 �
 
 ### 정량
 
-| 지표 | Before | After | 변화 |
-|---|---|---|---|
-| **영상 1건 단위 다운로드 부담** | 100MB mp4 일괄 | HLS segment 당 **2MB 미만** (6초) | **첫 청크 50배+ 경량화** |
+| 지표                              | Before                      | After                               | 변화                              |
+| --------------------------------- | --------------------------- | ----------------------------------- | --------------------------------- |
+| **영상 1건 단위 다운로드 부담**   | 100MB mp4 일괄              | HLS segment 당 **2MB 미만** (6초)   | **첫 청크 50배+ 경량화**          |
 | **단건 미디어 추가 시 큐잉 대상** | 콘텐츠 내 모든 video 재큐잉 | 신규 영상만 큐잉 (`media_ids` 옵션) | **기존 영상 중복 트랜스코딩 0건** |
-| **general 워커 영향** | (잠재) CPU bound 작업 혼재 | indexing 큐로 격리 | **0** |
-| **indexing 워커 CPU** | 평소 idle | 변환 task 동시 처리 시 **61%** | bounded · 안정 수준 |
-| **`ffmpeg` hang 최대 점유** | 무제한 | **10분 timeout** 후 강제 종료 | bounded |
-| **mp4 노출 사고** | 변환 중 노출 위험 | 옵션 B 상태 캡처로 **0건** | 신뢰성 확보 |
+| **general 워커 영향**             | (잠재) CPU bound 작업 혼재  | indexing 큐로 격리                  | **0**                             |
+| **indexing 워커 CPU**             | 평소 idle                   | 변환 task 동시 처리 시 **61%**      | bounded · 안정 수준               |
+| **`ffmpeg` hang 최대 점유**       | 무제한                      | **10분 timeout** 후 강제 종료       | bounded                           |
+| **mp4 노출 사고**                 | 변환 중 노출 위험           | 옵션 B 상태 캡처로 **0건**          | 신뢰성 확보                       |
 
 수치 신뢰에 대해 한 가지 솔직하게 적습니다. 위 표는 prod 배포 직후의 단발 관측이고, 첫 재생 시작 latency (LCP) · 변환 task 95p 소요 시간 · 변환 실패율의 시계열 대시보드는 아직 없습니다. 측정 인프라 부족은 인정하는 자리입니다.
 

@@ -16,18 +16,18 @@ description: "FilterChainProxy부터 Authentication, SecurityContext, AccessDeci
 1. `springSecurityFilterChain` 이라는 이름으로 생성되는 필터 빈입니다.
 2. `DelegatingFilterProxy` 로부터 요청을 위임받아 실제 보안 처리를 수행합니다.
 3. 스프링 시큐리티 초기화 시 생성되는 필터들을 관리하고 제어합니다.
-    - 스프링 시큐리티가 기본적으로 생성하는 필터
-    - 설정 클래스에서 API 추가 시 생성되는 필터
+   - 스프링 시큐리티가 기본적으로 생성하는 필터
+   - 설정 클래스에서 API 추가 시 생성되는 필터
 4. 사용자의 요청을 필터 순서대로 호출하여 전달합니다.
 5. 사용자 정의 필터를 만들어 기존 필터의 전·후로 추가할 수 있습니다.
-    - 이때 필터의 순서를 잘 정의해야 합니다.
+   - 이때 필터의 순서를 잘 정의해야 합니다.
 6. 마지막 필터까지 인증·인가 예외가 발생하지 않으면 보안이 통과됩니다.
 
 ## 필터 초기화와 다중 설정 클래스
 
 - 설정 클래스 별로 보안 기능이 각각 작동합니다.
 - 설정 클래스 별로 `RequestMatcher` 를 설정합니다.
-    - 예: `http.antMatcher("/admin/**")`
+  - 예: `http.antMatcher("/admin/**")`
 - 설정 클래스 별로 필터가 생성됩니다.
 - `FilterChainProxy` 가 각 필터들을 가지고 있습니다.
 - 요청에 따라 `RequestMatcher` 와 매칭되는 필터가 작동합니다.
@@ -78,17 +78,17 @@ Authentication authentication = SecurityContextHolder.getContext().getAuthentica
 **`SecurityContext` 객체의 생성·저장·조회를 담당하는 필터**입니다.
 
 - **익명 사용자**
-    - 새로운 `SecurityContext` 객체를 생성하여 `SecurityContextHolder` 에 저장합니다.
-    - `AnonymousAuthenticationFilter` 에서 `AnonymousAuthenticationToken` 객체를 `SecurityContext` 에 저장합니다.
+  - 새로운 `SecurityContext` 객체를 생성하여 `SecurityContextHolder` 에 저장합니다.
+  - `AnonymousAuthenticationFilter` 에서 `AnonymousAuthenticationToken` 객체를 `SecurityContext` 에 저장합니다.
 - **인증 시**
-    - 새로운 `SecurityContext` 객체를 생성하여 `SecurityContextHolder` 에 저장합니다.
-    - `UsernamePasswordAuthenticationFilter` 에서 인증 성공 후 `UsernamePasswordAuthentication` 객체를 `SecurityContext` 에 저장합니다.
-    - 인증이 최종 완료되면 `Session` 에 `SecurityContext` 를 저장합니다.
+  - 새로운 `SecurityContext` 객체를 생성하여 `SecurityContextHolder` 에 저장합니다.
+  - `UsernamePasswordAuthenticationFilter` 에서 인증 성공 후 `UsernamePasswordAuthentication` 객체를 `SecurityContext` 에 저장합니다.
+  - 인증이 최종 완료되면 `Session` 에 `SecurityContext` 를 저장합니다.
 - **인증 후**
-    - `Session` 에서 `SecurityContext` 를 꺼내 `SecurityContextHolder` 에 저장합니다.
-    - `SecurityContext` 안에 `Authentication` 객체가 존재하면 계속 인증을 유지합니다.
+  - `Session` 에서 `SecurityContext` 를 꺼내 `SecurityContextHolder` 에 저장합니다.
+  - `SecurityContext` 안에 `Authentication` 객체가 존재하면 계속 인증을 유지합니다.
 - **최종 응답 시 공통**
-    - `SecurityContextHolder.clearContext()` 가 호출됩니다.
+  - `SecurityContextHolder.clearContext()` 가 호출됩니다.
 
 ## Authentication Flow
 
@@ -101,8 +101,8 @@ Authentication authentication = SecurityContextHolder.getContext().getAuthentica
 
 - `AuthenticationProvider` 는 인터페이스이고, 어플리케이션에 맞게 커스텀하게 구현해서 사용하는 경우가 많습니다.
 - 두 가지 메서드를 가지고 있습니다.
-    - `authenticate` — 인증을 위해 검증하는 메서드
-    - `supports` — 인증을 처리할 수 있는 기준이 되는지 확인하는 메서드
+  - `authenticate` — 인증을 위해 검증하는 메서드
+  - `supports` — 인증을 처리할 수 있는 기준이 되는지 확인하는 메서드
 
 ### Authorization
 
@@ -138,13 +138,13 @@ Authentication authentication = SecurityContextHolder.getContext().getAuthentica
 
 - 판단을 심사하는 위원의 역할을 수행합니다.
 - `Voter` 가 권한 부여 과정에서 판단하는 자료는 다음과 같습니다.
-    - `Authentication` — 인증 정보 (user)
-    - `FilterInvocation` — 요청 정보 (`antMatcher("/user")`)
-    - `ConfigAttributes` — 권한 정보 (`hasRole("USER")`)
+  - `Authentication` — 인증 정보 (user)
+  - `FilterInvocation` — 요청 정보 (`antMatcher("/user")`)
+  - `ConfigAttributes` — 권한 정보 (`hasRole("USER")`)
 - 결정 방식
-    - `ACCESS_GRANTED` — 접근 허용 (1)
-    - `ACCESS_DENIED` — 접근 거부 (0)
-    - `ACCESS_ABSTAIN` — 접근 보류 (-1). `Voter` 가 해당 타입의 요청에 대해 결정을 내릴 수 없는 경우입니다.
+  - `ACCESS_GRANTED` — 접근 허용 (1)
+  - `ACCESS_DENIED` — 접근 거부 (0)
+  - `ACCESS_ABSTAIN` — 접근 보류 (-1). `Voter` 가 해당 타입의 요청에 대해 결정을 내릴 수 없는 경우입니다.
 
 ## 스프링 시큐리티 필터 및 아키텍처 정리
 
@@ -163,10 +163,11 @@ Authentication authentication = SecurityContextHolder.getContext().getAuthentica
 5. 인증을 담당하는 필터(예시에서는 `UsernamePasswordAuthenticationFilter`)가 사용자에게 입력받은 정보를 담아 인증 객체(`Authentication`)를 생성한 뒤, `AuthenticationManager` 에게 인증을 요청합니다. `AuthenticationManager` 는 `AuthenticationProvider` 에게 실질적인 인증 로직을 위임합니다.
 6. `AuthenticationProvider` 는 `UserDetailsService` 를 통해 해당 정보의 유효성을 검사하고, 인증이 완료된 정보일 경우 `SecurityContextHolder` 의 `SecurityContext` 안에 인증된 `Authentication` 객체를 저장합니다.
 7. 인증 후처리로 `SessionManagementFilter` 의 내용을 수행합니다. `ConcurrentSession` 을 확인해 세션 최대 허용 개수를 초과하는 경우 두 전략 중 하나를 선택합니다.
-    - **현재 사용자 인증 시도 차단** — `SessionAuthenticationException`
-    - **이전 사용자 세션 만료 설정** — `session.expireNow`
+   - **현재 사용자 인증 시도 차단** — `SessionAuthenticationException`
+   - **이전 사용자 세션 만료 설정** — `session.expireNow`
 
-    그 다음 `SessionFixation` 에서 세션 고정 보호를 위해 새롭게 인증된 사용자에게 새 쿠키를 발급합니다. 마지막으로 `Register SessionInfo` 에서 해당 사용자의 정보가 세션에 등록됩니다.
+   그 다음 `SessionFixation` 에서 세션 고정 보호를 위해 새롭게 인증된 사용자에게 새 쿠키를 발급합니다. 마지막으로 `Register SessionInfo` 에서 해당 사용자의 정보가 세션에 등록됩니다.
+
 8. 최종적으로 `SecurityContextPersistenceFilter` 의 `HttpSessionSecurityContextRepository` 가 최종 인증된 사용자 정보를 담은 `SecurityContext` 를 `Session` 에 저장하고, 해당 `SecurityContext` 는 삭제합니다.
 
 ### 인가의 경우

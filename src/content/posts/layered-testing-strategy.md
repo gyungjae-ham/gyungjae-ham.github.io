@@ -34,13 +34,13 @@ description: "Repository·Service·Controller 각 레이어를 어디까지 어�
 
 Spring Boot 가 제공하는 "테스트 슬라이스" 어노테이션을 한 표로 정리합니다.
 
-| 어노테이션 | 띄우는 범위 | 주 용도 | 속도 |
-|---|---|---|---|
-| `@SpringBootTest` | 전체 ApplicationContext | E2E 또는 무거운 통합 테스트 | 가장 느림 |
-| `@DataJpaTest` | JPA + DataSource + 트랜잭션 | Repository 통합 테스트 | 중간 |
-| `@WebMvcTest` | MVC 레이어 (Controller + Filter + Advice) | Controller 단위·통합 | 빠름 |
-| `@JsonTest` | Jackson 직렬화 영역 | DTO 변환 검증 | 빠름 |
-| 슬라이스 없음 | 컨텍스트 미사용 | 도메인 단위 테스트 | 가장 빠름 |
+| 어노테이션        | 띄우는 범위                               | 주 용도                     | 속도      |
+| ----------------- | ----------------------------------------- | --------------------------- | --------- |
+| `@SpringBootTest` | 전체 ApplicationContext                   | E2E 또는 무거운 통합 테스트 | 가장 느림 |
+| `@DataJpaTest`    | JPA + DataSource + 트랜잭션               | Repository 통합 테스트      | 중간      |
+| `@WebMvcTest`     | MVC 레이어 (Controller + Filter + Advice) | Controller 단위·통합        | 빠름      |
+| `@JsonTest`       | Jackson 직렬화 영역                       | DTO 변환 검증               | 빠름      |
+| 슬라이스 없음     | 컨텍스트 미사용                           | 도메인 단위 테스트          | 가장 빠름 |
 
 원칙은 단순합니다. **필요한 만큼만 띄웁니다.** `@SpringBootTest` 가 모든 곳에 깔려 있다면, 시스템이 RDB 와 외부 인프라에 강결합되어 있다는 뜻입니다. 슬라이스를 선택할 자리 자체가 없는 상태입니다.
 
@@ -78,11 +78,11 @@ class UserRepositoryTest {
 
 원본 노트에는 `H2` 가 자주 등장했습니다만, 5-6년차 시각으로 한 가지 보태자면 **운영 DB 와 다른 DB 로 테스트를 돌리는 결정은 점점 줄어드는 추세** 입니다.
 
-| 옵션 | 장점 | 단점 |
-|---|---|---|
-| **H2 (in-memory)** | 빠름, 외부 의존 없음 | 운영(MySQL/PG) 과 SQL 방언 차이 |
+| 옵션                                | 장점                   | 단점                            |
+| ----------------------------------- | ---------------------- | ------------------------------- |
+| **H2 (in-memory)**                  | 빠름, 외부 의존 없음   | 운영(MySQL/PG) 과 SQL 방언 차이 |
 | **Testcontainers + 운영과 같은 DB** | 운영과 동일한 SQL 동작 | 컨테이너 부팅 비용, Docker 필요 |
-| **공용 테스트 DB** | 운영 동일 환경 | 동시성 충돌, 격리 어려움 |
+| **공용 테스트 DB**                  | 운영 동일 환경         | 동시성 충돌, 격리 어려움        |
 
 규모가 작거나 SQL 이 표준에 가깝다면 H2 도 합리적입니다. 그러나 JSON 컬럼·윈도우 함수·DB 별 락 동작이 검증 대상에 들어오는 순간 H2 는 거짓 안전감을 줍니다. 저는 운영의 MySQL 락 동작과 H2 의 결과가 달라 production 에서만 데드락이 잡힌 적이 있습니다. 그 비용을 한 번 치르고 나서야 Testcontainers 로 옮겼습니다. 그 결정이 한 분기 늦었습니다.
 
@@ -241,13 +241,13 @@ class UserControllerTest {
 
 자주 헷갈리는 두 슬라이스를 비교합니다.
 
-| 항목 | `@WebMvcTest` | `@SpringBootTest + @AutoConfigureMockMvc` |
-|---|---|---|
-| 띄우는 범위 | MVC 레이어만 | 전체 컨텍스트 |
-| Service·Repository 빈 | **포함되지 않음** (별도 `@MockBean` 필요) | 모두 포함 |
-| 속도 | 빠름 | 느림 |
-| 주 용도 | Controller 단위 테스트 | Controller 통합 테스트 |
-| Spring Security 적용 | 컨트롤러 슬라이스만 적용 | 운영과 동일하게 적용 |
+| 항목                  | `@WebMvcTest`                             | `@SpringBootTest + @AutoConfigureMockMvc` |
+| --------------------- | ----------------------------------------- | ----------------------------------------- |
+| 띄우는 범위           | MVC 레이어만                              | 전체 컨텍스트                             |
+| Service·Repository 빈 | **포함되지 않음** (별도 `@MockBean` 필요) | 모두 포함                                 |
+| 속도                  | 빠름                                      | 느림                                      |
+| 주 용도               | Controller 단위 테스트                    | Controller 통합 테스트                    |
+| Spring Security 적용  | 컨트롤러 슬라이스만 적용                  | 운영과 동일하게 적용                      |
 
 **`@WebMvcTest` 가 적합한 자리**
 
@@ -286,11 +286,11 @@ Controller 테스트를 짜다 한 가지 상황이 반복되면 의심해야 �
 
 ## 한눈에 — 레이어별 권장 매트릭스
 
-| 레이어 | 1순위 도구 | 2순위 도구 | 검증 초점 | 흔한 함정 |
-|---|---|---|---|---|
-| **Repository** | `@DataJpaTest` + 진짜 DB | Testcontainers | 쿼리 결과·매핑 | H2/운영 DB 방언 차이 |
-| **Service** | 단위 테스트 + Fake | `@SpringBootTest` | 도메인 로직·상태 변화 | 모든 협력자 `@MockBean` |
-| **Controller** | `@WebMvcTest` + MockMvc | `@SpringBootTest` + MockMvc | HTTP 변환·예외 처리 | 비즈니스 로직 침투 |
+| 레이어         | 1순위 도구               | 2순위 도구                  | 검증 초점             | 흔한 함정               |
+| -------------- | ------------------------ | --------------------------- | --------------------- | ----------------------- |
+| **Repository** | `@DataJpaTest` + 진짜 DB | Testcontainers              | 쿼리 결과·매핑        | H2/운영 DB 방언 차이    |
+| **Service**    | 단위 테스트 + Fake       | `@SpringBootTest`           | 도메인 로직·상태 변화 | 모든 협력자 `@MockBean` |
+| **Controller** | `@WebMvcTest` + MockMvc  | `@SpringBootTest` + MockMvc | HTTP 변환·예외 처리   | 비즈니스 로직 침투      |
 
 이 표는 절대 규칙이 아니라 출발점입니다. 프로젝트의 **외부 의존성 수, 도메인 복잡도, 팀 인원, CI 시간 예산** 에 따라 결이 달라집니다.
 

@@ -14,10 +14,10 @@ description: "Form Login·Logout·Remember Me·세션 제어·CSRF까지 Spring 
 ## 시리즈에서 다루는 내용
 
 1. 스프링 시큐리티의 보안 설정 API와 이와 연계된 각 `Filter` 학습
-    - 각 API의 개념과 사용법, 처리 과정, 동작 방식
-    - API 설정 시 생성·초기화되어 사용자의 요청을 처리하는 `Filter`
+   - 각 API의 개념과 사용법, 처리 과정, 동작 방식
+   - API 설정 시 생성·초기화되어 사용자의 요청을 처리하는 `Filter`
 2. 스프링 시큐리티 내부 아키텍처와 각 객체의 역할 및 처리 과정 학습
-    - 초기화 과정, 인증 과정, 인가 과정 등
+   - 초기화 과정, 인증 과정, 인가 과정 등
 3. 인증 기능 구현 — Form 방식, Ajax 인증 처리
 4. 인가 기능 구현 — DB와 연동한 권한 제어 시스템 (URL 방식, Method 방식)
 
@@ -27,10 +27,10 @@ description: "Form Login·Logout·Remember Me·세션 제어·CSRF까지 Spring 
 
 - **서버가 기동되면 스프링 시큐리티의 초기화 작업과 보안 설정이 이루어집니다.**
 - **별도의 설정이나 구현 없이도 기본적인 웹 보안 기능이 현재 시스템에 연동되어 작동합니다.**
-    1. 모든 요청은 인증되어야 자원에 접근 가능합니다.
-    2. 인증 방식은 폼 로그인 방식과 `httpBasic` 로그인 방식을 제공합니다.
-    3. 기본 로그인 페이지를 제공합니다.
-    4. 기본 계정 한 개를 제공합니다 — `user`, 랜덤 문자열 비밀번호.
+  1. 모든 요청은 인증되어야 자원에 접근 가능합니다.
+  2. 인증 방식은 폼 로그인 방식과 `httpBasic` 로그인 방식을 제공합니다.
+  3. 기본 로그인 페이지를 제공합니다.
+  4. 기본 계정 한 개를 제공합니다 — `user`, 랜덤 문자열 비밀번호.
 
 ## 인증 API
 
@@ -56,8 +56,8 @@ description: "Form Login·Logout·Remember Me·세션 제어·CSRF까지 Spring 
 6. 인증에 성공하면 `AuthenticationProvider` 는 user 객체 정보와 `authority` 권한 정보를 담은 `Authentication` 객체를 생성해 `AuthenticationManager` 에 다시 반환합니다.
 7. `AuthenticationManager` 는 `AuthenticationProvider` 에게 받은 최종 인증 객체를 다시 `UsernamePasswordAuthenticationFilter` 에 반환합니다.
 8. `UsernamePasswordAuthenticationFilter` 는 `User` 객체 정보와 `Authorities` 정보를 담은 최종 `Authentication` 객체를 만들어 `SecurityContext` 에 저장합니다.
-    - `SecurityContext` 는 인증 객체를 저장하는 보관소입니다.
-    - 이후 `SecurityContext` 는 `Session` 에 저장되어 전역적으로 사용 가능합니다.
+   - `SecurityContext` 는 인증 객체를 저장하는 보관소입니다.
+   - 이후 `SecurityContext` 는 `Session` 에 저장되어 전역적으로 사용 가능합니다.
 9. 마지막으로 `SuccessHandler` 가 성공 후처리를 수행합니다.
 
 ### FilterChainProxy
@@ -65,19 +65,19 @@ description: "Form Login·Logout·Remember Me·세션 제어·CSRF까지 Spring 
 - 여러 필터를 가지고 있는 클래스입니다.
 - 우리가 설정한 값에 맞게 필터를 구성해 순서대로 실행합니다.
 - 예를 들어 `formLogin()` 을 설정한 경우 다음 순서로 필터가 실행됩니다.
-    1. `WebAsyncManagerIntegrationFilter`
-    2. `SecurityContextPersistenceFilter`
-    3. `HeaderWriterFilter`
-    4. `CsrfFilter`
-    5. `LogoutFilter`
-    6. `UsernamePasswordAuthenticationFilter`
-    7. `DefaultLoginPageGeneratingFilter`
-    8. `DefaultLogoutPageGeneratingFilter`
-    9. `SecurityContextHolderAwareRequestFilter`
-    10. `AnonymousAuthenticationFilter`
-    11. `SessionManagementFilter`
-    12. `ExceptionTranslationFilter`
-    13. `FilterSecurityInterceptor`
+  1. `WebAsyncManagerIntegrationFilter`
+  2. `SecurityContextPersistenceFilter`
+  3. `HeaderWriterFilter`
+  4. `CsrfFilter`
+  5. `LogoutFilter`
+  6. `UsernamePasswordAuthenticationFilter`
+  7. `DefaultLoginPageGeneratingFilter`
+  8. `DefaultLogoutPageGeneratingFilter`
+  9. `SecurityContextHolderAwareRequestFilter`
+  10. `AnonymousAuthenticationFilter`
+  11. `SessionManagementFilter`
+  12. `ExceptionTranslationFilter`
+  13. `FilterSecurityInterceptor`
 
 ### Logout
 
@@ -108,9 +108,9 @@ description: "Form Login·Logout·Remember Me·세션 제어·CSRF까지 Spring 
 - 세션이 만료되고 웹 브라우저가 종료된 후에도 어플리케이션이 사용자를 기억하는 기능입니다.
 - `Remember-Me` 쿠키에 대한 HTTP 요청을 확인한 후 토큰 기반 인증을 사용해 유효성을 검사하고, 토큰이 검증되면 사용자가 로그인됩니다.
 - 사용자 라이프 사이클
-    - 인증 성공 — `Remember-Me` 쿠키 설정
-    - 인증 실패 — 쿠키가 존재하면 쿠키 무효화
-    - 로그아웃 — 쿠키가 존재하면 쿠키 무효화
+  - 인증 성공 — `Remember-Me` 쿠키 설정
+  - 인증 실패 — 쿠키가 존재하면 쿠키 무효화
+  - 로그아웃 — 쿠키가 존재하면 쿠키 무효화
 
 #### Remember Me API
 
@@ -129,8 +129,8 @@ description: "Form Login·Logout·Remember Me·세션 제어·CSRF까지 Spring 
 
 1. 조건이 충족되어 `RememberMeAuthenticationFilter` 가 동작하면 `RememberMeServices` 가 동작합니다.
 2. `RememberMeServices` 는 인터페이스로 구현체가 두 가지 있습니다.
-    - `TokenBasedRememberMeServices` — 사용자의 요청 토큰과 메모리상 토큰을 비교하는 구현체
-    - `PersistentTokenBasedRememberMeServices` — DB에 토큰 내용을 저장해서 사용자 값과 비교하는 구현체
+   - `TokenBasedRememberMeServices` — 사용자의 요청 토큰과 메모리상 토큰을 비교하는 구현체
+   - `PersistentTokenBasedRememberMeServices` — DB에 토큰 내용을 저장해서 사용자 값과 비교하는 구현체
 3. `RememberMeServices` 가 토큰을 추출해 사용자가 가지고 있는 토큰이 `Remember-Me` 이름의 토큰인지 확인합니다. 해당 토큰이 없다면 다음 필터로 넘어갑니다.
 4. 토큰을 가지고 있다면 `Decode Token` 에서 해당 토큰이 규칙을 지키고 있는지 확인합니다 (정상 유무 판단).
 5. 정상적인 토큰이라면 사용자의 토큰과 가지고 있는 토큰이 일치하는지 확인합니다.
@@ -177,31 +177,31 @@ description: "Form Login·Logout·Remember Me·세션 제어·CSRF까지 Spring 
 
 - 공격자가 자신의 세션 아이디를 사용자에게 심어, 사용자가 로그인하면 자신도 인증받도록 유도해 사용자의 정보를 보는 공격을 **세션 고정 공격**이라고 합니다.
 - Spring Security 는 해당 공격을 방지하기 위한 보호 기능을 제공합니다.
-    - 인증에 성공할 때마다 새 세션을 생성하고 세션 아이디를 발급해, 공격자가 자신의 세션 정보를 활용할 수 없도록 합니다.
+  - 인증에 성공할 때마다 새 세션을 생성하고 세션 아이디를 발급해, 공격자가 자신의 세션 정보를 활용할 수 없도록 합니다.
 
 ##### 세션 고정 보호 API
 
 - `http.sessionManagement()`
 - `.sessionFixation().changeSessionId()` — 기본값. 사용자가 인증을 시도하면 세션은 그대로 유지한 채 세션 아이디만 변경합니다.
-    - `migrateSession()` — 세션과 세션 아이디 모두 새로 생성합니다. **`changeSessionId` 와 `migrateSession` 은 이전 세션에서 설정한 옵션을 그대로 사용할 수 있습니다.**
-    - `newSession()` — 세션과 세션 아이디 모두 새로 생성하지만 이전 세션의 옵션을 사용할 수 없습니다.
-    - `none()` — 세션과 세션 아이디 모두 그대로 두는 설정이므로 세션 고정 공격에 노출될 위험이 있습니다.
+  - `migrateSession()` — 세션과 세션 아이디 모두 새로 생성합니다. **`changeSessionId` 와 `migrateSession` 은 이전 세션에서 설정한 옵션을 그대로 사용할 수 있습니다.**
+  - `newSession()` — 세션과 세션 아이디 모두 새로 생성하지만 이전 세션의 옵션을 사용할 수 없습니다.
+  - `none()` — 세션과 세션 아이디 모두 그대로 두는 설정이므로 세션 고정 공격에 노출될 위험이 있습니다.
 
 #### 세션 정책 API
 
 - `.sessionCreationPolicy(...)` — 네 가지 정책 설정이 가능합니다.
-    - `SessionCreationPolicy.Always` — Spring Security 가 항상 세션 생성
-    - `SessionCreationPolicy.If_Required` — Spring Security 가 필요시 생성 (**기본값**)
-    - `SessionCreationPolicy.Never` — Spring Security 가 생성하지 않지만 이미 존재하면 사용
-    - `SessionCreationPolicy.Stateless` — Spring Security 가 생성하지 않고 존재해도 사용하지 않음. **세션 자체를 사용하지 않으므로 JWT 토큰 방식을 사용할 때 적용합니다.**
+  - `SessionCreationPolicy.Always` — Spring Security 가 항상 세션 생성
+  - `SessionCreationPolicy.If_Required` — Spring Security 가 필요시 생성 (**기본값**)
+  - `SessionCreationPolicy.Never` — Spring Security 가 생성하지 않지만 이미 존재하면 사용
+  - `SessionCreationPolicy.Stateless` — Spring Security 가 생성하지 않고 존재해도 사용하지 않음. **세션 자체를 사용하지 않으므로 JWT 토큰 방식을 사용할 때 적용합니다.**
 
 ### ConcurrentSessionFilter
 
 - 매 요청마다 현재 사용자의 세션 만료 여부를 체크합니다.
 - 세션이 만료되었을 경우 즉시 만료 처리합니다.
 - `session.isExpired() == true`
-    - 로그아웃 처리
-    - 즉시 오류 페이지 응답
+  - 로그아웃 처리
+  - 즉시 오류 페이지 응답
 
 ### SessionManagementFilter 와 ConcurrentSessionFilter 가 동시 적용된 경우
 
@@ -212,8 +212,8 @@ description: "Form Login·Logout·Remember Me·세션 제어·CSRF까지 Spring 
 1. `user1` 이 로그인을 시도하면 `ConcurrentSessionControlAuthenticationStrategy` 에서 현재 사용자의 세션 개수를 확인합니다.
 2. 위 예제에서는 아직 세션이 생성된 적이 없으므로, 세션 고정 보호 처리 후 세션 정보를 등록하고 인증이 성공됩니다.
 3. 그 후 `user2` 가 인증을 시도하면 똑같이 `ConcurrentSessionControlAuthenticationStrategy` 에서 세션 개수를 확인하고, 이미 최대 허용 개수인 1개가 생성 중이므로 두 전략 중 선택한 전략대로 움직입니다.
-    - 인증 실패 전략일 경우 바로 인증을 실패하고 종료합니다.
-    - 세션 만료 전략인 경우 `user2` 의 인증을 똑같이 세션 고정 보호 처리한 뒤 세션 정보에 등록하고, `user1` 의 세션을 만료시킵니다.
+   - 인증 실패 전략일 경우 바로 인증을 실패하고 종료합니다.
+   - 세션 만료 전략인 경우 `user2` 의 인증을 똑같이 세션 고정 보호 처리한 뒤 세션 정보에 등록하고, `user1` 의 세션을 만료시킵니다.
 4. 이후 `user1` 이 서버에 자원을 요청하면 `ConcurrentSessionFilter` 가 만료된 것을 확인하고, 바로 로그아웃 처리하며 오류 페이지를 응답합니다.
 
 ## 인가 API
@@ -225,7 +225,7 @@ Spring Security 에서 권한 설정은 두 가지 방식으로 할 수 있습�
 #### 선언적 방식
 
 - **URL**
-    - `http.antMatchers("/users/**").hasRole("USER")`
+  - `http.antMatchers("/users/**").hasRole("USER")`
 - **Method**
 
 ```java
@@ -268,10 +268,10 @@ protected void configure(HttpSecurity http) throws Exception {
 인증 예외 처리.
 
 1. `AuthenticationEntryPoint` 호출
-    - 로그인 페이지 이동, 401 오류 코드 전달 등
+   - 로그인 페이지 이동, 401 오류 코드 전달 등
 2. 인증 예외가 발생하기 전의 요청 정보를 저장
-    - `RequestCache` — 사용자의 이전 요청 정보를 세션에 저장하고 꺼내오는 캐시 메커니즘
-    - `SavedRequest` — 사용자가 요청했던 request 파라미터 값들과 그 당시의 헤더 값들 등이 저장됨
+   - `RequestCache` — 사용자의 이전 요청 정보를 세션에 저장하고 꺼내오는 캐시 메커니즘
+   - `SavedRequest` — 사용자가 요청했던 request 파라미터 값들과 그 당시의 헤더 값들 등이 저장됨
 
 #### AccessDeniedException
 

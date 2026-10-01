@@ -1,0 +1,504 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-01T16:18:00.362200+09:00",
+  "scope": "Obsidian numbered work logs 01–47",
+  "note": "Repository state only; ready_in_repository does not mean deployed. A changed source hash requires review, not automatic duplicate publication. Auxiliary notes are excluded.",
+  "entries": [
+    {
+      "source_id": "log:01",
+      "source_sha256": "2c519ce2792d2ab3fb6b3d24063fc4535315de4744194ef8a8c9437aed738f24",
+      "post": "src/content/posts/athlog-video-hls-redesign.md",
+      "state": "existing_in_repository",
+      "relation": "superseded_design_covered_by_existing_post"
+    },
+    {
+      "source_id": "log:02",
+      "source_sha256": "e1f377c7a7483e971eff61f169f8bda6970c83b17b0f6e3da17f622067e3c9a4",
+      "post": "src/content/posts/instagram-content-sync-pipeline.md",
+      "state": "existing_in_repository",
+      "relation": "existing_post"
+    },
+    {
+      "source_id": "log:03",
+      "source_sha256": "396dd104f0e4ca5dbbc13589b6b93054d294e714d1ae89894c2505b8b833f891",
+      "post": "src/content/posts/focus-brand-hardcode-to-remoteconfig.md",
+      "state": "existing_in_repository",
+      "relation": "existing_post"
+    },
+    {
+      "source_id": "log:04",
+      "source_sha256": "eec88668c0c51bf05b9b38539aadb3b53aa24e2f389da8c4a14d4bf88adec29d",
+      "post": "src/content/posts/drf-exception-monitoring-decorator.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-03-24",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-03-24T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:05",
+      "source_sha256": "bc1e89e619a5f70ccd286f679fba6d39c9c64bc97e7f287836a796d5e7ef407a",
+      "post": "src/content/posts/phone-verification-server-policy.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-05-19",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-05-19T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:06",
+      "source_sha256": "bfc8e0e982ed33e0e9b8efc8d2408dcec199c2117849a8e7752e78fee494aea5",
+      "post": "src/content/posts/athlog-video-hls-redesign.md",
+      "state": "existing_in_repository",
+      "relation": "existing_post"
+    },
+    {
+      "source_id": "log:07",
+      "source_sha256": "d136e677323154cc5563f27ec931b418f0ed2cd89dc3de7d15ff6e0141bce0cc",
+      "post": "src/content/posts/celery-scheduler-error-notifications.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-05-27",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-05-27T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:08",
+      "source_sha256": "1d019bce826abbc6085b5c0edef8a14ee36a06495dd1ccdceae1839de51ea0ea",
+      "post": "src/content/posts/ad-landing-pinned-product.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-05-27",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-05-27T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:09",
+      "source_sha256": "7babfaebccd526ffe2703f74e4e123db677d74780a237ad71b4eb2100d42cf0b",
+      "post": "src/content/posts/new-user-first-purchase-ranking.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-05-26",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-05-26T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:10",
+      "source_sha256": "9e2828c8b23cf0d8d4ddf73ec2e44e8b9cfb4502771d40f460f05f8100f8fe49",
+      "post": "src/content/posts/cart-sort-preserve-user-context.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-05-26",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-05-26T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:11",
+      "source_sha256": "417d795df050d5661855aa89f685aa41fe52d70ed2c5d5e5698f78d28541085f",
+      "post": "src/content/posts/crm-provider-migration-contract.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-04-06",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-04-06T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:12",
+      "source_sha256": "e9d55abe473f16c8d97a26141900fac6f668ed9612105f0432ba80b73617e2e7",
+      "post": "src/content/posts/coding-agent-harness-six-weeks.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-04-24",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-04-24T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:13",
+      "source_sha256": "d19c30f3c0b29ff049043c59696ba9aa246597da8a3546e1eb7318ac9618e7c6",
+      "post": "src/content/posts/home-content-cache-invalidation.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-05-28",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-05-28T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:14",
+      "source_sha256": "d93ad654c8675e79a8b9ad35a8f63d9df7ad69156a105f14d331d37c3edce3fc",
+      "post": "src/content/posts/guest-cart-stateless-merge.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-06-02",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-06-02T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:15",
+      "source_sha256": "7875d8b0d6d80c82455e7d2ebfd9c6bca9bf2471dd8f69e9cc4d75b72dd3584a",
+      "post": "src/content/posts/personalized-home-product-list.md",
+      "state": "existing_in_repository",
+      "relation": "existing_post"
+    },
+    {
+      "source_id": "log:16",
+      "source_sha256": "9eb6cd80c560e2b85ec3f8048bc1e4fa33f1108d5cf3480a434e80d1350c4235",
+      "post": "src/content/posts/age-based-category-personalization.md",
+      "state": "existing_in_repository",
+      "relation": "existing_post"
+    },
+    {
+      "source_id": "log:17",
+      "source_sha256": "c5aeda52e0c3c7f4e8c8992da790cc022834487c16b696e59db8020a393fd727",
+      "post": "src/content/posts/crm-traffic-scheduled-autoscaling.md",
+      "state": "existing_in_repository",
+      "relation": "existing_post"
+    },
+    {
+      "source_id": "log:18",
+      "source_sha256": "85bc849a896856c14abe07528a95288a15c18952d41244d28f1965496e3c1569",
+      "post": "src/content/posts/push-delivery-three-boundaries.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-06-12",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-06-12T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:19",
+      "source_sha256": "e66654069a325df9267cba05113e8e91c528eaceff47829c4076288cab54b2f1",
+      "post": "src/content/posts/buyer-ranking-batch-query-plan.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-06-01",
+      "work_date_precision": "month",
+      "publication_date_basis": "month_first_day_representative",
+      "pubDatetime": "2026-06-01T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:20",
+      "source_sha256": "1874b6c0fdf82a2d63828a95a0a0174b185f793c8816b3468ff5575bc961bb71",
+      "post": "src/content/posts/crm-segment-coupon-history.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-06-23",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-06-23T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:21",
+      "source_sha256": "dec527ac69071b500e4a2bc0de058c6ac5abeb4d340cab822c4abb9e4e82c2e8",
+      "post": "src/content/posts/catalog-color-size-normalization.md",
+      "state": "ready_in_repository",
+      "relation": "combined_post",
+      "work_date_start": "2026-06-11",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-06-11T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:22",
+      "source_sha256": "2cd65f9bc2c7bd0cc64a2efdec2943ce861d9289935fac2593394bc46c6b45bf",
+      "post": "src/content/posts/product-tag-bulk-upload-history.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-06-17",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-06-17T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:23",
+      "source_sha256": "31e4b745013f1271bdf1b1dac5f5b8ecbc4022cd0ad3ccbd544e4db6b90fd0b7",
+      "post": "src/content/posts/review-sort-subquery-aggregation.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-06-18",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-06-18T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:24",
+      "source_sha256": "7d513a2fc8514ee165952a23c4f846ed533840f50e4ae1074984011cc6f414c4",
+      "post": "src/content/posts/seller-brand-serializer-query-contract.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-06-24",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-06-24T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:25",
+      "source_sha256": "a7d735997916ea235e234d3093981ffb52790ffd033ffad28b8fbdcd7ac0a788",
+      "post": "src/content/posts/brand-metadata-ranking-policy.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-06-24",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-06-24T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:26",
+      "source_sha256": "c8b225b8e326374bec3f9c06780c96ccadd7a938983e9beb2c6ced28042d28b1",
+      "post": "src/content/posts/order-detail-prefetch-exists.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-06-24",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-06-24T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:27",
+      "source_sha256": "aec542dd9e7e46b049aed7361ab17655b344023640de885909ce215c934533d2",
+      "post": "src/content/posts/opensearch-synonym-package-reindex.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-07-01",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-07-01T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:28",
+      "source_sha256": "417fa5b37aa7d542d390a08b470c96ba3bd0a5858d6779e263450b36274a6926",
+      "post": "src/content/posts/catalog-color-size-normalization.md",
+      "state": "ready_in_repository",
+      "relation": "combined_post",
+      "work_date_start": "2026-07-01",
+      "work_date_precision": "month",
+      "publication_date_basis": "month_first_day_representative",
+      "pubDatetime": "2026-06-11T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:29",
+      "source_sha256": "a56d4c90a9b31b511a73d53c045c16f8062de16766e958424f1898902ee2d0af",
+      "post": "src/content/posts/popular-search-batch-fallback.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-07-02",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-07-02T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:30",
+      "source_sha256": "1394385f31ffb9ed310acbdd79c36deb26d53937cfc0c82316d6e9af6f8933e8",
+      "post": "src/content/posts/automated-comments-reward-boundary.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-07-07",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-07-07T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:31",
+      "source_sha256": "82d251bf7da4c2c74700c09bdf59dabd68cffece622d1f828e3919a08c5b2932",
+      "post": "src/content/posts/django-testcontainers-isolation.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-07-31",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-07-31T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:32",
+      "source_sha256": "0b331181c2e5c84b00fcb0c618008ac08e923c5510a32da19dd30a107e7c7625",
+      "post": "src/content/posts/first-exchange-benefit-ledger.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-07-27",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-07-27T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:33",
+      "source_sha256": "ca8e761d70dd9a433ee9ce9485c1c0ce4078ea011f9ba64b06b9507296cc397d",
+      "post": "src/content/posts/product-list-remove-review-hydration.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-07-29",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-07-29T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:34",
+      "source_sha256": "d72d0ea386e8dfb97e66ae7f5f5d4f29d79cc9fdc1b6fd0de6e50e9ad3fc938e",
+      "post": "src/content/posts/page-copy-reference-remapping.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-08-21",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-08-21T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:35",
+      "source_sha256": "cda9f77a490ff6e06dc49d777198261aa78ecbce903826d245772849d34b4341",
+      "post": "src/content/posts/product-option-limit-order.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-08-19",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-08-19T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:36",
+      "source_sha256": "c9a28767a2dc9dfded3227e16ca3730d883f1dcaaa27afc29cb2bf663d4b3e88",
+      "post": "src/content/posts/review-copy-split-move-plan.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-08-24",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-08-24T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:37",
+      "source_sha256": "3d8a78f81012e4858a4e4f128e8db69cfebafdcd933259ad8d7df7164db149eb",
+      "post": "src/content/posts/search-experiment-winner-baseline.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-08-25",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-08-25T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:38",
+      "source_sha256": "8128c11d06459370989ad7fc561c22bc0baa40ea744f59fc30de05ca93e6f133",
+      "post": "src/content/posts/delivery-experiment-read-assignment.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-08-25",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-08-25T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:39",
+      "source_sha256": "d99804556eb255fd2a918078e1cb3b777504eeac0062257403445cdc82307e50",
+      "post": "src/content/posts/escrow-return-fee-uncertain-result.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-09-01",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-09-01T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:40",
+      "source_sha256": "d700eb3e7b3682f8d43543abb30d52f556408b780cb8c91d7485aed51fc8848d",
+      "post": "src/content/posts/escrow-display-json-query-scope.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-09-17",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-09-17T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:41",
+      "source_sha256": "844deacb7149718e7d4668b92f1d2ee41bfd4ee8e7207ad8afcfb44385f9a898",
+      "post": "src/content/posts/cart-single-coupon-selection.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-09-10",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-09-10T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:42",
+      "source_sha256": "d1bab687868cab5de1a129b019875a5a4d67b358ba4c32312d600c5f4366b830",
+      "post": "src/content/posts/recent-view-concurrent-insert-recovery.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-09-15",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-09-15T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:43",
+      "source_sha256": "1dfdbdabdcb92d28dc97bbdcdf6f48ba9e0e1c97a67f928038b6a444bba64c32",
+      "post": "src/content/posts/seller-inquiry-order-membership.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-09-16",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-09-16T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:44",
+      "source_sha256": "37dc065a352e906368f26faa91655218731412eace485727e274962e676a56e4",
+      "post": "src/content/posts/seller-brand-coupon-scope-settlement.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-09-28",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-09-28T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:45",
+      "source_sha256": "11ee5ebbbcb5f2467eab2d489e41abf625d479a4783295b6750dfe845950c2aa",
+      "post": "src/content/posts/review-rules-ast-regression.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-09-04",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-09-04T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:46",
+      "source_sha256": "78b2bd34d012fddea4bee2cb8636b0873075b034f7d19e49ae33a781790f0caf",
+      "post": "src/content/posts/seasonal-candidates-catalog-name.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-09-02",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-09-02T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:47",
+      "source_sha256": "659297b255cfe843f965ecde5c2e44ef54a049aa043850224f771e50ee32032a",
+      "post": "src/content/posts/brand-wish-count-batch-contract.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "work_date_start": "2026-09-21",
+      "work_date_precision": "day",
+      "publication_date_basis": "work_period_start",
+      "pubDatetime": "2026-09-21T00:00:00+09:00"
+    }
+  ],
+  "publication_date_policy": {
+    "source": "work date in source log Situation, not log creation or blog generation date",
+    "range": "use beginning of recorded work period",
+    "combined": "earliest recorded work date among combined logs",
+    "month_only": "first day of recorded month as a representative date; precision is recorded, not asserted as exact",
+    "time": "00:00:00+09:00; source does not supply actual work time"
+  }
+}

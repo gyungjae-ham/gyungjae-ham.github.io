@@ -52,13 +52,13 @@ MySQL 데이터베이스 연결을 구성합니다.
 ### JPA & Hibernate
 
 ```yaml
-  jpa:
-    defer-datasource-initialization: true
-    hibernate.ddl-auto: create
-    show-sql: true
-    properties:
-      hibernate.format_sql: true
-      hibernate.default_batch_fetch_size: 100
+jpa:
+  defer-datasource-initialization: true
+  hibernate.ddl-auto: create
+  show-sql: true
+  properties:
+    hibernate.format_sql: true
+    hibernate.default_batch_fetch_size: 100
 ```
 
 Hibernate 가 자동으로 DDL 을 생성하고, SQL 을 포맷팅하며, 배치 페칭을 설정합니다.
@@ -66,11 +66,11 @@ Hibernate 가 자동으로 DDL 을 생성하고, SQL 을 포맷팅하며, 배치
 ### H2 및 기타
 
 ```yaml
-  h2.console.enabled: false
-  sql.init.mode: ALWAYS
-  data.rest:
-    base-path: /api
-    detection-strategy: ANNOTATED
+h2.console.enabled: false
+sql.init.mode: ALWAYS
+data.rest:
+  base-path: /api
+  detection-strategy: ANNOTATED
 ```
 
 ### Test 프로필

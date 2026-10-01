@@ -185,13 +185,13 @@ long count = queryFactory
     .fetchCount();
 ```
 
-| 메서드 | 설명 |
-|--------|------|
-| `fetch()` | 리스트 조회, 데이터 없으면 빈 리스트 |
-| `fetchOne()` | 단 건 조회 (없으면 `null`, 2건 이상이면 예외) |
-| `fetchFirst()` | `limit(1).fetchOne()` 과 동일 |
-| `fetchResults()` | 페이징 정보 포함 (count 쿼리 추가 실행) |
-| `fetchCount()` | count 쿼리로 변경해서 조회 |
+| 메서드           | 설명                                          |
+| ---------------- | --------------------------------------------- |
+| `fetch()`        | 리스트 조회, 데이터 없으면 빈 리스트          |
+| `fetchOne()`     | 단 건 조회 (없으면 `null`, 2건 이상이면 예외) |
+| `fetchFirst()`   | `limit(1).fetchOne()` 과 동일                 |
+| `fetchResults()` | 페이징 정보 포함 (count 쿼리 추가 실행)       |
+| `fetchCount()`   | count 쿼리로 변경해서 조회                    |
 
 ## 정렬
 
