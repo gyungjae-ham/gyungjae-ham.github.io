@@ -19,6 +19,12 @@ import config from "./astro-paper.config";
 
 export default defineConfig({
   site: config.site.url,
+  redirects: {
+    "/posts/brand-wish-count-batch-contract/":
+      "/posts/seller-brand-serializer-query-contract/",
+    "/posts/crm-provider-migration-contract/": "/posts/",
+    "/posts/automated-comments-reward-boundary/": "/posts/",
+  },
   integrations: [
     mdx(),
     sitemap({

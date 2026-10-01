@@ -1,74 +1,89 @@
-# Obsidian 로그 블로그 작성 목록
+# Obsidian 로그 블로그 편집 기록
 
-2026-10-01 기준 번호 로그 47개를 대조했습니다. 기존 글로 대응한 로그는 7개이며, 나머지 40개 로그를 새 글 39편으로 작성했습니다. 카탈로그 정제 로그 21·28은 한 글로 통합했습니다.
+2026-10-01에 작성·발행한 39편을 이직용 사례 글로 다시 검토했습니다. 36편은 본문·제목·소개를 다시 썼고, 1편은 관련 글에 통합했으며, 2편은 공개 목록에서 보류했습니다. 기존 53편과 합쳐 현재 공개 글은 89편입니다.
 
-새 글은 모두 `draft: false`이며 `pubDatetime`은 원본 로그의 본문 작업일 기준입니다. 작업 기간은 시작일, 통합 글은 가장 이른 작업일을 사용합니다. 실제 시각은 기록되어 있지 않아 00:00 KST로 통일했습니다. 랭킹 집계 글은 작업 월(2026-06)만 기록되어 2026-06-01을 대표일로 사용하며 정확한 일자는 미확인입니다. 이 문서는 저장소에 작성한 결과를 기록합니다. 실제 사이트 배포 상태는 GitHub Actions의 `Deploy to GitHub Pages` 실행 결과에서 확인합니다. 원본의 PR 상태·테스트·측정은 기록 당시의 근거로 설명하고, 운영 실측이나 완료로 확대하지 않았습니다. 원본 로그는 수정하지 않았습니다.
+## 편집 기준
 
-## 새 글 39편
+문제 상황에서 시작해 선택 이유·변경 과정·검증 결과가 이어지도록 고쳤습니다. 생성 과정의 안내와 반복된 보고서 문구를 제거하고 원본에 있는 판단과 시행착오를 살렸습니다. 원본에 없는 감정·사전 검토·운영 성과는 추가하지 않았습니다. 짧은 사례는 길이를 억지로 늘리지 않았습니다.
 
-| 원본 번호 | 발행 날짜 (KST) | 글 |
+발행일은 원본 작업일을 유지하며 모든 공개 글은 `draft: false`입니다. 로그 19는 월만 확인돼 6월 1일을 대표일로 사용합니다. 로그 24·47 통합 글은 가장 이른 작업일인 6월 24일이며, 본문에서 9월 후속 작업을 구분합니다.
+
+## 다시 쓴 공개 글
+
+| 원본 로그 | 발행일 | 글 | 대표 글 |
+| --- | --- | --- | --- |
+| 4 | 2026-03-24 | [245개 View를 건드리지 않고 예외 모니터링을 한곳으로 모으기](../src/content/posts/drf-exception-monitoring-decorator.md) |  |
+| 5 | 2026-05-19 | [인증번호를 서버로 옮기는 일보다 어려웠던 구버전 앱과의 공존](../src/content/posts/phone-verification-server-policy.md) |  |
+| 7 | 2026-05-27 | [새벽 오류 알림에서 디버깅을 시작할 수 있게 만들기](../src/content/posts/celery-scheduler-error-notifications.md) |  |
+| 8 | 2026-05-27 | [광고에서 본 상품을 보여주는 API에 캐시를 넣지 않은 이유](../src/content/posts/ad-landing-pinned-product.md) |  |
+| 9 | 2026-05-26 | [첫 구매 TOP 20을 만들었는데 응답에는 15개만 남았다](../src/content/posts/new-user-first-purchase-ranking.md) |  |
+| 10 | 2026-05-26 | [수량만 바꿨는데 장바구니가 재정렬된다면](../src/content/posts/cart-sort-preserve-user-context.md) |  |
+| 12 | 2026-04-24 | [코딩 에이전트를 6주 쓰며 구현과 리뷰를 분리한 이유](../src/content/posts/coding-agent-harness-six-weeks.md) | 대표 |
+| 13 | 2026-05-28 | [홈 API 하나에 47개 파일이 바뀌어서 설계를 되돌렸다](../src/content/posts/home-content-cache-invalidation.md) | 대표 |
+| 14 | 2026-06-02 | [비로그인 장바구니의 DB 설계를 버리고 서버를 계산기로 남겼다](../src/content/posts/guest-cart-stateless-merge.md) | 대표 |
+| 18 | 2026-06-12 | [푸시 발송은 성공인데 알림이 오지 않았다](../src/content/posts/push-delivery-three-boundaries.md) | 대표 |
+| 19 | 2026-06-01 (월 대표일) | [랭킹을 만들다 주문 집계가 DB 부하가 됐다](../src/content/posts/buyer-ranking-batch-query-plan.md) | 대표 |
+| 20 | 2026-06-23 | [앱을 설치한 사람에게 설치 쿠폰을 약속하고 있었다](../src/content/posts/crm-segment-coupon-history.md) |  |
+| 21·28 | 2026-06-11 | [색상 정제기를 고치다 카탈로그에서 빠진 상품을 찾았다](../src/content/posts/catalog-color-size-normalization.md) |  |
+| 22 | 2026-06-17 | [엑셀 업로드의 실패를 운영자가 다시 처리할 수 있게 만들기](../src/content/posts/product-tag-bulk-upload-history.md) |  |
+| 23 | 2026-06-18 | [리뷰에 도움돼요 정렬을 더했더니 JOIN이 곱으로 늘어났다](../src/content/posts/review-sort-subquery-aggregation.md) |  |
+| 24·47 | 2026-06-24 | [브랜드 N+1을 고치려다 공유 Serializer의 모든 호출부를 바꿨다](../src/content/posts/seller-brand-serializer-query-contract.md) |  |
+| 25 | 2026-06-24 | [랭킹에 감점을 넣기 전에 점수의 소비처부터 따라갔다](../src/content/posts/brand-metadata-ranking-policy.md) |  |
+| 26 | 2026-06-24 | [prefetch를 넣었는데 exists 쿼리는 그대로였다](../src/content/posts/order-detail-prefetch-exists.md) |  |
+| 27 | 2026-07-01 | [동의어 반영을 재시도했더니 새 버전만 늘어났다](../src/content/posts/opensearch-synonym-package-reindex.md) | 대표 |
+| 29 | 2026-07-02 | [인기검색어를 자동 갱신하되 빈 목록은 내보내지 않기](../src/content/posts/popular-search-batch-fallback.md) |  |
+| 31 | 2026-07-31 | [테스트가 어느 MySQL에 붙을지 환경변수에 맡기지 않기로 했다](../src/content/posts/django-testcontainers-isolation.md) |  |
+| 32 | 2026-07-27 | [무료교환을 0원 결제로 만들지 않은 이유](../src/content/posts/first-exchange-benefit-ledger.md) |  |
+| 33 | 2026-07-29 | [상품 카드의 리뷰 한 건 때문에 전체 리뷰를 읽고 있었다](../src/content/posts/product-list-remove-review-hydration.md) |  |
+| 34 | 2026-08-21 | [페이지는 복제됐는데 필터는 원본을 보고 있었다](../src/content/posts/page-copy-reference-remapping.md) |  |
+| 35 | 2026-08-19 | [옵션 500개 제한을 넣어도 기존 상품은 수정할 수 있어야 했다](../src/content/posts/product-option-limit-order.md) |  |
+| 36 | 2026-08-24 | [리뷰를 나누어 옮길 때 미리보기 결과를 그대로 믿지 않았다](../src/content/posts/review-copy-split-move-plan.md) |  |
+| 37 | 2026-08-25 | [검색 실험에서 이긴 동작이 실험 종료와 함께 사라졌다](../src/content/posts/search-experiment-winner-baseline.md) |  |
+| 38 | 2026-08-25 | [장바구니에서 배송 안내를 읽었다고 실험에 배정되면 안 됐다](../src/content/posts/delivery-experiment-read-assignment.md) |  |
+| 39 | 2026-09-01 | [결제 timeout을 실패로 저장하면 재시도가 위험해진다](../src/content/posts/escrow-return-fee-uncertain-result.md) |  |
+| 40 | 2026-09-17 | [결제 안내의 SELECT는 열 번인데 한 SQL이 전체를 읽고 있었다](../src/content/posts/escrow-display-json-query-scope.md) |  |
+| 41 | 2026-09-10 | [최대 할인 쿠폰 하나가 사용자의 선택을 대신할 수는 없었다](../src/content/posts/cart-single-coupon-selection.md) |  |
+| 42 | 2026-09-15 | [중복키를 잡되 다른 데이터 오류까지 숨기지는 않기](../src/content/posts/recent-view-concurrent-insert-recovery.md) |  |
+| 43 | 2026-09-16 | [주문과 상품이 각각 존재해도 올바른 문의는 아니었다](../src/content/posts/seller-inquiry-order-membership.md) |  |
+| 44 | 2026-09-28 | [브랜드 쿠폰의 조건을 결제·복원·정산까지 따라가기](../src/content/posts/seller-brand-coupon-scope-settlement.md) |  |
+| 45 | 2026-09-04 | [리뷰 규칙을 문서에 적었는데 실제 코드에는 적용되지 않았다](../src/content/posts/review-rules-ast-regression.md) |  |
+| 46 | 2026-09-02 | [가을 추천에 여름 상품이 남았는데 배치는 정상 완료였다](../src/content/posts/seasonal-candidates-catalog-name.md) |  |
+
+## 통합·보류
+
+| 기존 글 | 결정 | 이유 |
 | --- | --- | --- |
-| 04 | 2026-03-24 | [DRF 에러 모니터링 진입점을 두 곳에서 한 곳으로 줄이기](../src/content/posts/drf-exception-monitoring-decorator.md) |
-| 05 | 2026-05-19 | [전화번호 인증을 서버로 옮기며 시도 횟수와 구버전 호환을 나누기](../src/content/posts/phone-verification-server-policy.md) |
-| 07 | 2026-05-27 | [Celery와 Scheduler 오류 알림을 같은 흐름으로 읽게 만들기](../src/content/posts/celery-scheduler-error-notifications.md) |
-| 08 | 2026-05-27 | [광고에서 본 상품을 랜딩 화면에서도 유지하기](../src/content/posts/ad-landing-pinned-product.md) |
-| 09 | 2026-05-26 | [신규 유저 첫 구매 TOP 상품을 요청마다 집계하지 않기](../src/content/posts/new-user-first-purchase-ranking.md) |
-| 10 | 2026-05-26 | [장바구니 정렬에서 담기와 수량 변경의 의도를 나누기](../src/content/posts/cart-sort-preserve-user-context.md) |
-| 11 | 2026-04-06 | [CRM 발송 도구를 옮길 때 유지해야 하는 계약](../src/content/posts/crm-provider-migration-contract.md) |
-| 12 | 2026-04-24 | [코딩 에이전트를 6주 운영하며 구현과 리뷰를 나누기](../src/content/posts/coding-agent-harness-six-weeks.md) |
-| 13 | 2026-05-28 | [홈 콘텐츠 API를 줄이고 캐시 무효화 시점을 맞추기](../src/content/posts/home-content-cache-invalidation.md) |
-| 14 | 2026-06-02 | [비로그인 장바구니를 서버에 저장하지 않기로 한 이유](../src/content/posts/guest-cart-stateless-merge.md) |
-| 18 | 2026-06-12 | [푸시 API는 성공했는데 알림이 오지 않을 때](../src/content/posts/push-delivery-three-boundaries.md) |
-| 19 | 2026-06-01 (월 기준 대표일) | [상품 랭킹을 만들다 집계 쿼리가 DB 부하가 되었을 때](../src/content/posts/buyer-ranking-batch-query-plan.md) |
-| 20 | 2026-06-23 | [앱 설치 여부를 유효 쿠폰으로 판단하던 CRM 버그](../src/content/posts/crm-segment-coupon-history.md) |
-| 21·28 | 2026-06-11 | [색상과 사이즈를 정제해 카탈로그에서 빠지는 상품을 줄이기](../src/content/posts/catalog-color-size-normalization.md) |
-| 22 | 2026-06-17 | [상품 태그 엑셀 업로드에서 실패 행과 매핑 이력을 남기기](../src/content/posts/product-tag-bulk-upload-history.md) |
-| 23 | 2026-06-18 | [리뷰 정렬에 도움돼요를 붙이다 JOIN 곱을 피하기](../src/content/posts/review-sort-subquery-aggregation.md) |
-| 24 | 2026-06-24 | [브랜드 목록 N+1을 고치며 공유 Serializer의 계약을 맞추기](../src/content/posts/seller-brand-serializer-query-contract.md) |
-| 25 | 2026-06-24 | [브랜드 운영 메타를 제외 정책과 랭킹 감점으로 나누기](../src/content/posts/brand-metadata-ranking-policy.md) |
-| 26 | 2026-06-24 | [prefetch를 추가해도 주문 상세의 exists 쿼리가 남는 이유](../src/content/posts/order-detail-prefetch-exists.md) |
-| 27 | 2026-07-01 | [OpenSearch 동의어 반영에서 재시도와 재색인의 책임을 나누기](../src/content/posts/opensearch-synonym-package-reindex.md) |
-| 29 | 2026-07-02 | [인기검색어 갱신 중 빈 목록을 만들지 않기](../src/content/posts/popular-search-batch-fallback.md) |
-| 30 | 2026-07-07 | [자동 생성 댓글이 경품 대상에 섞이지 않도록 경계를 찾기](../src/content/posts/automated-comments-reward-boundary.md) |
-| 31 | 2026-07-31 | [Django 테스트 DB를 세션마다 격리된 MySQL로 준비하기](../src/content/posts/django-testcontainers-isolation.md) |
-| 32 | 2026-07-27 | [무료교환 안내와 혜택 확정을 별도 판단으로 두기](../src/content/posts/first-exchange-benefit-ledger.md) |
-| 33 | 2026-07-29 | [상품 카드의 리뷰 한 건을 위해 전체 리뷰를 읽고 있었다](../src/content/posts/product-list-remove-review-hydration.md) |
-| 34 | 2026-08-21 | [페이지를 복제했는데 필터는 원본을 보고 있었다](../src/content/posts/page-copy-reference-remapping.md) |
-| 35 | 2026-08-19 | [상품 옵션 조합의 상한과 표시 순서를 함께 관리하기](../src/content/posts/product-option-limit-order.md) |
-| 36 | 2026-08-24 | [리뷰 복제와 이동을 나누고 실행 계획을 다시 검증하기](../src/content/posts/review-copy-split-move-plan.md) |
-| 37 | 2026-08-25 | [검색 실험이 끝나자 이전 정렬로 돌아간 이유](../src/content/posts/search-experiment-winner-baseline.md) |
-| 38 | 2026-08-25 | [당일배송 정보를 조회하는 것과 실험에 배정하는 것을 나누기](../src/content/posts/delivery-experiment-read-assignment.md) |
-| 39 | 2026-09-01 | [결제 응답이 유실됐을 때 무조건 재시도하지 않기](../src/content/posts/escrow-return-fee-uncertain-result.md) |
-| 40 | 2026-09-17 | [안내 화면이 결제 검증용 전역 JSON 조회를 쓰고 있었다](../src/content/posts/escrow-display-json-query-scope.md) |
-| 41 | 2026-09-10 | [장바구니 쿠폰의 최대 할인과 사용자의 선택을 나누기](../src/content/posts/cart-single-coupon-selection.md) |
-| 42 | 2026-09-15 | [최근 본 상품 저장의 중복키 충돌만 복구하기](../src/content/posts/recent-view-concurrent-insert-recovery.md) |
-| 43 | 2026-09-16 | [주문 ID가 존재해도 문의의 상품이 그 주문 소속인지는 다르다](../src/content/posts/seller-inquiry-order-membership.md) |
-| 44 | 2026-09-28 | [셀러·브랜드 쿠폰의 범위를 결제와 복원까지 유지하기](../src/content/posts/seller-brand-coupon-scope-settlement.md) |
-| 45 | 2026-09-04 | [리뷰 규칙 문서가 실제 코드 경로에 적용되는지 검증하기](../src/content/posts/review-rules-ast-regression.md) |
-| 46 | 2026-09-02 | [가을인데 여름 추천이 남은 원인은 카테고리 이름이었다](../src/content/posts/seasonal-candidates-catalog-name.md) |
-| 47 | 2026-09-21 | [브랜드 찜 수를 일괄 집계하고 표시 기준을 맞추기](../src/content/posts/brand-wish-count-batch-contract.md) |
+| [브랜드 찜 수](blog-editorial-archive/brand-wish-count-batch-contract.md) | 로그 24 글에 통합 | 공유 조회 계약과 표시 기준의 후속 사례로 연결했습니다. |
+| [CRM 도구 이관](blog-editorial-archive/crm-provider-migration-contract.md) | 보류 | 결정 이유·검증 결과·협업 범위가 대부분 미확인인 원본 초안입니다. 사실을 보강하기 전에는 독립된 이직용 사례로 공개하지 않습니다. |
+| [자동 댓글·경품](blog-editorial-archive/automated-comments-reward-boundary.md) | 보류 | 핵심 사례가 생성 댓글 운영이며, 기술 설명은 예약 실행과 경품 제외 흐름에 집중돼 있습니다. 이직용 대표 경험으로는 결제·혜택·실험 사례가 더 적합해 이번 공개 목록에서 제외합니다. 다시 쓰려면 생성 콘텐츠의 표시·운영 정책과 실제 결과를 함께 확인해야 합니다. |
+
+이전 원고는 공개 콘텐츠 경로 밖에 보관했습니다. 통합 글의 기존 URL은 합친 글로, 보류 글의 기존 URL은 글 목록으로 연결합니다.
 
 ## 기존 글과 대응한 로그
 
-| 원본 번호 | 대응 글 |
+| 원본 로그 | 기존 글 |
 | --- | --- |
-| 01·06 | [athlog HLS 재설계](../src/content/posts/athlog-video-hls-redesign.md) — 01의 초기 MediaConvert 설계는 기존 글에서 최종 변경 이유와 함께 다루므로 별도 중복 글을 만들지 않았습니다. |
-| 02 | [인스타그램 자동 동기화](../src/content/posts/instagram-content-sync-pipeline.md) |
-| 03 | [집중 브랜드 RemoteConfig 이관](../src/content/posts/focus-brand-hardcode-to-remoteconfig.md) |
-| 15 | [홈 상품 구좌 개인화](../src/content/posts/personalized-home-product-list.md) |
-| 16 | [카테고리 연령대 개인화](../src/content/posts/age-based-category-personalization.md) |
-| 17 | [CRM 예약형 오토스케일링](../src/content/posts/crm-traffic-scheduled-autoscaling.md) |
+| log:01 | [athlog-video-hls-redesign](../src/content/posts/athlog-video-hls-redesign.md) |
+| log:02 | [instagram-content-sync-pipeline](../src/content/posts/instagram-content-sync-pipeline.md) |
+| log:03 | [focus-brand-hardcode-to-remoteconfig](../src/content/posts/focus-brand-hardcode-to-remoteconfig.md) |
+| log:06 | [athlog-video-hls-redesign](../src/content/posts/athlog-video-hls-redesign.md) |
+| log:15 | [personalized-home-product-list](../src/content/posts/personalized-home-product-list.md) |
+| log:16 | [age-based-category-personalization](../src/content/posts/age-based-category-personalization.md) |
+| log:17 | [crm-traffic-scheduled-autoscaling](../src/content/posts/crm-traffic-scheduled-autoscaling.md) |
 
-## 발행 이력 연결
+## 다음 자동 발행에서 확인할 것
 
-[발행 대응표](../scripts/blog-publication-map.json)에 로그 번호·원본 해시·블로그 파일을 기록했습니다. `existing_in_repository`와 `ready_in_repository`는 저장소 기준 상태입니다. 사이트 배포 확인을 대신하지 않습니다. 원본 해시가 변경되어도 같은 주제의 새 글로 자동 재발행하지 않고 기존 글의 수정 필요 여부를 검토해야 합니다.
+[발행 대응표](../scripts/blog-publication-map.json)는 47개 번호 로그를 모두 연결합니다. `withheld_editorially`는 근거 보강 전 재발행하지 않을 상태이며, `merged_follow_up`은 이미 관련 글에 통합된 내용입니다. 해시 변경 시에는 기존 글 보완 필요 여부를 검토합니다. 번호 없는 인덱스·핵심가치·면접 자료는 별도 글로 생성하지 않습니다.
 
-번호 없는 인덱스·핵심가치 기준·면접 답변 모음은 작업 로그를 재정리한 보조 문서이므로 별도 블로그 글로 생성하지 않았습니다.
+실제 배포 결과는 GitHub Actions의 `Deploy to GitHub Pages` 실행에서 확인합니다. 아래 검증 결과는 이 편집본의 로컬 검증입니다.
 
-## 검증 결과
+## 검증
 
 - `npm run check`: 오류·경고·hint 0건.
-- `npm run build`: 정적 사이트 생성과 검색 인덱싱 성공, 전체 92편 인덱싱.
-- 새 글 39편: 정적 HTML 생성·RSS 포함·사극체 및 원본 비공개 식별자 검사 통과.
-- 번호 로그 47개: 중복 없는 대응표 검증 통과.
-- 새 글·기존 글 전체 92편·대응표·이 문서의 Prettier 검사 통과. 기존 26편의 형식 경고는 2026-10-01에 수정했습니다.
+- `npm run lint`: 통과.
+- `npm run build`: 정적 사이트 생성 성공, 검색에 공개 글 89편 인덱싱.
+- 편집 대상 39편: 36편 재작성·1편 통합·2편 보류 대응 검증.
+- 재작성 36편: 발행일 유지, `draft: false`, HTML·RSS 포함, 내부 글 링크 확인.
+- 제외 3편: RSS·검색에서 제거, 이전 주소의 정적 리다이렉트 확인.
+- 원본 로그 47개: 해시 불변·중복 없는 대응표·대응 글 존재 검증.
+- Prettier와 `git diff --check`: 통과.
