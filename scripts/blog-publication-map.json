@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "checked_at": "2026-10-01T17:00:13+09:00",
-  "scope": "Obsidian numbered work logs 01–47",
+  "checked_at": "2026-10-03T10:00:11+09:00",
+  "scope": "Obsidian numbered work logs 01–48",
   "note": "Repository editorial state only; publication is verified separately in GitHub Actions. Withheld sources require evidence review before reconsideration. A changed source hash does not authorize duplicate publication.",
   "entries": [
     {
@@ -538,6 +538,19 @@
       "editorial_reason": "같은 브랜드 목록의 집계·표시 계약을 다루는 후속 사례로 로그 24 글에 통합했습니다.",
       "source_work_date_start": "2026-09-21",
       "editorial_revision": "2026-10-01-resume-case-studies"
+    },
+    {
+      "source_id": "log:48",
+      "source_sha256": "70262d8b155e501bf90db584cd17dbfc21e4495e5a1b55180a65a8308c691ec6",
+      "post": "src/content/posts/recommendation-exclusion-before-selection.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "editorial_reason": "전용 상품 제외를 후보 수 판정과 두 대체 보충 경로에 함께 적용한 독립 사례입니다. 기존 개인화·시즌 후보 글과 문제 및 검증이 다르며, 미병합 종료와 로컬 회귀 검증의 범위를 본문에 명시합니다.",
+      "work_date_start": "2026-10-02",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-10-02T00:00:00+09:00",
+      "editorial_revision": "2026-10-03-weekly-publication"
     }
   ],
   "publication_date_policy": {
@@ -545,7 +558,8 @@
     "range": "use beginning of recorded work period",
     "combined": "earliest recorded work date among combined logs",
     "month_only": "first day of recorded month as a representative date; precision is recorded, not asserted as exact",
-    "time": "00:00:00+09:00; source does not supply actual work time"
+    "time": "00:00:00+09:00; source does not supply actual work time",
+    "new_weekly_entries": "Verified own relevant commit author date in Asia/Seoul; related PR creation date only as fallback. Combined posts use earliest verified work day. Evidence identifiers and timestamps remain in private run records."
   },
   "editorial_summary": {
     "reviewed_original_posts": 39,
