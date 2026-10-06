@@ -35,7 +35,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-03-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:05",
@@ -47,7 +47,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-19T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:06",
@@ -66,7 +66,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-27T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:08",
@@ -78,7 +78,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-27T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:09",
@@ -90,7 +90,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-26T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:10",
@@ -102,7 +102,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-26T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:11",
@@ -128,7 +128,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-04-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:13",
@@ -140,7 +140,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-28T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:14",
@@ -152,7 +152,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-02T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:15",
@@ -185,7 +185,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-12T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:19",
@@ -197,7 +197,7 @@
       "work_date_precision": "month",
       "publication_date_basis": "month_first_day_representative",
       "pubDatetime": "2026-06-01T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:20",
@@ -209,7 +209,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-23T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:21",
@@ -221,7 +221,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-11T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:22",
@@ -233,7 +233,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-17T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:23",
@@ -245,7 +245,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-18T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:24",
@@ -257,7 +257,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:25",
@@ -269,7 +269,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:26",
@@ -281,7 +281,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:27",
@@ -293,7 +293,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-01T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:28",
@@ -304,7 +304,8 @@
       "work_date_start": "2026-07-01",
       "work_date_precision": "month",
       "publication_date_basis": "month_first_day_representative",
-      "pubDatetime": "2026-06-11T00:00:00+09:00"
+      "pubDatetime": "2026-06-11T00:00:00+09:00",
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:29",
@@ -316,7 +317,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-02T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:30",
@@ -342,7 +343,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-31T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:32",
@@ -354,7 +355,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-27T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:33",
@@ -366,7 +367,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-29T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:34",
@@ -378,7 +379,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-08-21T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:35",
@@ -390,7 +391,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-08-19T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:36",
@@ -402,7 +403,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-08-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:37",
@@ -414,7 +415,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-08-25T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:38",
@@ -426,7 +427,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-08-25T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:39",
@@ -438,7 +439,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-01T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:40",
@@ -450,7 +451,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-17T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:41",
@@ -462,7 +463,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-10T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:42",
@@ -474,7 +475,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-15T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:43",
@@ -486,7 +487,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-16T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:44",
@@ -498,7 +499,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-28T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:45",
@@ -510,7 +511,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-04T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:46",
@@ -522,7 +523,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-02T00:00:00+09:00",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:47",
@@ -537,7 +538,7 @@
       "previous_post": "src/content/posts/brand-wish-count-batch-contract.md",
       "editorial_reason": "같은 브랜드 목록의 집계·표시 계약을 다루는 후속 사례로 로그 24 글에 통합했습니다.",
       "source_work_date_start": "2026-09-21",
-      "editorial_revision": "2026-10-01-resume-case-studies"
+      "editorial_revision": "2026-10-06-reader-context"
     },
     {
       "source_id": "log:48",
@@ -550,7 +551,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "verified_own_commit_author_date_kst",
       "pubDatetime": "2026-10-02T00:00:00+09:00",
-      "editorial_revision": "2026-10-03-weekly-publication"
+      "editorial_revision": "2026-10-06-reader-context"
     }
   ],
   "publication_date_policy": {
@@ -573,6 +574,12 @@
       "src/content/posts/push-delivery-three-boundaries.md",
       "src/content/posts/buyer-ranking-batch-query-plan.md",
       "src/content/posts/opensearch-synonym-package-reindex.md"
-    ]
+    ],
+    "reader_context_revision": {
+      "date": "2026-10-06",
+      "rewritten_public_posts": 37,
+      "scope": "36 published backlog case studies and 1 weekly post (log:48)",
+      "preserved": "Existing work dates, slugs, draft:false, featured flags, merged and withheld decisions"
+    }
   }
 }
