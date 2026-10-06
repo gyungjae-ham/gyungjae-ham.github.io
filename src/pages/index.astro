@@ -20,7 +20,7 @@ const t = useTranslations(locale);
 
 const posts = await getCollection("posts");
 const sortedPosts = getSortedPosts(posts);
-const FEATURED_COUNT = 3;
+const FEATURED_COUNT = 5;
 const explicitFeatured = sortedPosts.filter(({ data }) => data.featured);
 const autoFilled = sortedPosts
   .filter(({ data }) => !data.featured)
@@ -62,18 +62,29 @@ const homePath = getRelativeLocaleUrl(locale, "");
       </a>
 
       <p>
-        5-6년차 백엔드 개발자입니다. Kotlin · Spring Boot 위에서 일하며, 느린
-        코드의 진짜 병목을 찾아 개선하는 것을 좋아합니다.
+        Kotlin · Spring Boot와 Python · Django로 서비스를 만드는 백엔드
+        개발자입니다. 고객과 운영자가 겪는 문제를 코드와 데이터의 흐름을 따라
+        해결합니다.
       </p>
       <p class="mt-2">
-        이 블로그에는 설계 결정의 트레이드오프와 실측 수치를 기록합니다. 자세한
-        소개는
+        이 블로그에는 어떤 문제가 있었고 왜 그 방법을 골랐는지, 어디까지
+        확인했는지를 기록합니다. 자세한 소개는
         <LinkButton
           class="hover:text-accent underline decoration-dashed underline-offset-4"
           href={getRelativeLocaleUrl(locale, "about")}
         >
           About
         </LinkButton> 페이지에 있습니다.
+      </p>
+      <p class="mt-2">
+        실무 사례는 아래 대표 글에서, 기술 개념 정리는
+        <LinkButton
+          class="hover:text-accent underline decoration-dashed underline-offset-4"
+          href={getRelativeLocaleUrl(locale, "tags/학습노트")}
+        >
+          학습 노트
+        </LinkButton>에서 읽을 수 있습니다. 실무 글의 날짜는 해당 작업일을
+        기준으로 합니다.
       </p>
       {
         socials.length > 0 && (

@@ -1,108 +1,68 @@
 ---
 author: "luca"
 pubDatetime: 2024-12-18T23:29:10+09:00
-modDatetime: 2026-05-23T00:00:00+09:00
-title: "Spring Boot 배포 시 스레드는 어디서 어떻게 생기는가 — Tomcat · @Async · Coroutine 세 풀의 합"
+modDatetime: 2026-10-06T18:18:44+09:00
+title: "Spring Boot 요청이 느릴 때 어느 스레드가 기다리는지 확인하기"
 slug: "spring-boot-thread-pools"
 featured: false
 draft: false
 tags:
+  - 학습노트
   - spring-boot
   - thread-pool
   - kotlin
   - coroutine
   - tomcat
   - performance
-description: "Tomcat 200 개를 잡아두면 끝일 줄 알았는데, 실은 @Async 풀과 Coroutine Dispatchers 풀이 각자 따로 살고 있습니다. 세 풀이 어디서 차오르는지를 APM 지표로 짚어보고, CPU bound · IO bound 별 풀 크기 잡는 결정 트리를 정리합니다."
+description: "Tomcat, @Async, Kotlin 코루틴의 실행 위치와 병렬도를 구분하고, DB·외부 호출 대기를 찾아 풀 설정을 조정하는 방법을 정리합니다."
 ---
 
-> 2024-12 에 정리한 tistory 글을 5~6년차 시각으로 다시 손본 글입니다. 그때는 "Tomcat 풀 크기를 얼마로 잡을까" 가 질문이었는데, 지금 다시 들여다보면 같은 자리에서 묻는 질문이 바뀌어 있습니다. "어느 풀이 먼저 차오르는지 보고 있는가" 가 더 앞에 와야 했다는 것을 운영을 거치고 보면 알게 됩니다.
+Spring MVC 서버에서 요청이 느려지면 Tomcat 스레드 수부터 보게 됩니다. 하지만 요청 안에서 JDBC를 호출하고, 알림은 `@Async`로 보내고, 일부 계산은 코루틴으로 넘긴다면 기다리는 곳이 여러 군데입니다. 어느 작업이 어떤 실행기에 올라가는지 알아야 설정을 바꿀 수 있습니다.
 
-배포 직전에 가장 많이 던지는 질문은 `server.tomcat.threads.max` 를 얼마로 잡을지였습니다. 그 자리에서 한 번 더 들여다보면, Tomcat 풀 옆에 `@Async` 의 `ThreadPoolTaskExecutor` 와 Kotlin Coroutine 의 `Dispatchers.IO`·`Dispatchers.Default` 가 같이 살고 있습니다.
+이 글은 **플랫폼 스레드를 사용하는 Spring Boot 3.x의 Servlet 애플리케이션과 Kotlin/JVM 코루틴**을 기준으로 설명합니다. 가상 스레드를 활성화한 환경이나 WebFlux에는 같은 수치를 그대로 적용하지 않습니다.
 
-세 풀은 서로의 크기를 모르는데 컨테이너 cgroup CPU 한도는 한 줄입니다. 그 합을 의식하지 않으면 어느 한 풀이 차오른 자리에서 엉뚱한 풀의 크기를 만지게 됩니다.
+## 실행 위치와 병렬도는 따로 본다
 
-## 세 풀이 한 박스 안에 같이 살아 있다는 사실
+| 실행기                   | 담당 작업                     | 확인할 설정                                    |
+| ------------------------ | ----------------------------- | ---------------------------------------------- |
+| Tomcat                   | HTTP 요청 처리                | `server.tomcat.threads.max`, 연결 수와 대기 큐 |
+| `ThreadPoolTaskExecutor` | 명시적으로 위임한 비동기 작업 | core/max pool size, queue capacity             |
+| `Dispatchers.Default`    | CPU를 사용하는 코루틴 작업    | 기본 병렬도는 CPU 코어 수, 최소 2              |
+| `Dispatchers.IO`         | 블로킹 I/O 작업               | 기본 병렬도는 64와 CPU 코어 수 중 큰 값        |
 
-8 코어 컨테이너 한 대를 기준으로 세 풀의 이론치를 박아 두겠습니다. 숫자를 한 번 보면 "Tomcat 200 만 잡으면 끝" 이 아니라는 사실이 명확해집니다.
+예를 들어 8코어 환경의 `Default` 기본 병렬도는 8입니다. `IO`의 기본 병렬도는 64지만 **두 디스패처는 내부 스레드를 공유**합니다. 각 설정값을 더해서 프로세스의 실제 스레드 수라고 볼 수는 없습니다. JVM 자체 스레드와 다른 라이브러리의 실행기도 별도로 존재합니다. [Kotlin Default 문서](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-default.html), [IO 문서](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-i-o.html)
 
-| 풀                              | 기본 최대  | 비고                        |
-| ------------------------------- | ---------- | --------------------------- |
-| Tomcat 요청 처리                | 200        | `server.tomcat.threads.max` |
-| `@Async` (예시 설정)            | 50         | `maxPoolSize=50` 일 때      |
-| Coroutine `Dispatchers.Default` | 16         | `min(8 × 2, 128) = 16`      |
-| Coroutine `Dispatchers.IO`      | 64         | 기본 상한                   |
-| **합계**                        | **약 330** | 모두 OS 네이티브 스레드     |
+## Tomcat이 바쁜 이유가 DB일 수 있다
 
-세 풀 모두 JVM 가상 객체가 아니라 OS 네이티브 스레드와 1:1 매핑됩니다. 컨테이너 위의 리눅스 커널이 실제로 스케줄링하는 스레드라는 뜻이고, cgroup CPU 한도 안에서 같이 압박을 만들어냅니다. 한 풀이 차오를 때 다른 풀은 멀쩡하다는 게 디버깅의 출발점이지만, **풀이 차오를 때 보이는 증상의 결이 셋이 서로 다르다** 는 사실을 먼저 봐야 합니다. 그래서 운영에서 가장 먼저 묻는 질문은 풀 크기가 아니라 "지금 어느 풀이 빨갛게 떴는가" 가 됩니다.
+동기 Servlet 요청이 JDBC 응답을 기다리는 동안 요청 처리 스레드는 다른 요청을 처리하지 못합니다. 이때 Tomcat 워커만 늘리면 DB 커넥션을 기다리는 요청이 더 많아질 수 있습니다.
 
-## Tomcat 풀이 차오를 때 보이는 신호
+`maxThreads`는 요청 처리 스레드의 한도이고, `maxConnections`는 연결 수의 한도입니다. `acceptCount`는 연결 한도에 도달했을 때 운영체제의 연결 대기 큐에 관한 설정입니다. 이를 모두 하나의 HTTP 요청 큐로 해석하면 병목 위치를 잘못 짚게 됩니다. [Tomcat HTTP Connector](https://tomcat.apache.org/tomcat-10.1-doc/config/http.html)
 
-Tomcat 워커는 한 요청을 받으면 응답이 나갈 때까지 그 스레드를 통째로 점유합니다. JDBC·외부 API 동기 호출이 끼면 그 시간만큼 워커가 묶입니다. 200 이라는 숫자는 동시에 처리 가능한 HTTP 요청의 상한이고, 그 위로 들어오는 요청은 `acceptCount` 큐에 쌓이거나 거부됩니다.
+확인할 것은 바쁜 스레드 수와 함께 그 스레드가 기다리는 대상입니다. 스레드 덤프에서 JDBC 대기가 많다면 DB 실행 시간과 커넥션 획득 대기를 나눠 보고, 외부 HTTP 호출이 많다면 호출별 타임아웃과 동시 요청 수를 봅니다. 응답 지연만으로 풀 부족을 확정하지 않습니다.
 
-운영에서 이 풀이 차오르는 자리는 다음 지표에서 동시에 떠오릅니다.
+## 비동기 큐가 길어질 때
 
-- **Spring Boot Actuator** `tomcat.threads.busy` 가 `tomcat.threads.config.max` 근처에 붙음
-- **APM (Datadog · NewRelic · Pinpoint)** 의 request queue depth 가 비어 있다가 급등
-- **응답 시간 분포** 가 p50 은 멀쩡한데 p99 만 폭증 — 큐잉 latency 가 끼는 모양
-
-그 자리에서 가장 자주 확인되는 원인은 워커가 외부 호출이나 DB 를 동기로 기다리느라 점유 시간이 길어진 경우입니다. 풀 크기를 200 에서 400 으로 올려서 증상은 잠시 가라앉아도, **풀 크기를 키우는 게 답이 아니라 점유 시간을 줄이는 게 답인 자리** 가 대부분입니다. DB 커넥션 풀이 10 개인데 Tomcat 워커가 400 개라면 워커 390 개가 커넥션을 기다리며 묶이는 모양이 됩니다.
-
-## @Async 풀과 곁가지의 본가지화
-
-`@Async` 가 붙은 메서드는 Tomcat 워커가 아니라 별도의 `ThreadPoolTaskExecutor` 빈에 위임됩니다. 메일 발송·알림·비동기 로깅 같은 곁가지 작업을 메인 흐름에서 떼어내려는 것이 본 의도입니다.
+다음은 동작을 설명하기 위한 설정입니다. 이 실행기를 쓰려면 `@EnableAsync`와 함께 호출 메서드에 `@Async("notificationExecutor")`를 지정합니다. 같은 객체 내부 호출에는 기본 프록시 방식의 `@Async`가 적용되지 않습니다.
 
 ```kotlin
-@Bean(name = ["asyncExecutor"])
-override fun getAsyncExecutor(): Executor {
-    val executor = ThreadPoolTaskExecutor()
-    executor.corePoolSize = 10
-    executor.maxPoolSize = 50
-    executor.queueCapacity = 100
-    executor.setThreadNamePrefix("Async-")
-    executor.initialize()
-    return executor
-}
+@Bean
+fun notificationExecutor(): ThreadPoolTaskExecutor =
+    ThreadPoolTaskExecutor().apply {
+        corePoolSize = 4
+        maxPoolSize = 8
+        queueCapacity = 100
+        setThreadNamePrefix("notification-")
+    }
 ```
 
-이 풀의 동작 결을 한 번 짚고 가야 합니다. `corePoolSize` 만큼은 상시 살아 있고, 부하가 오르면 `queueCapacity` 가 먼저 차고 그 다음에 `maxPoolSize` 까지 늘어납니다. 큐를 크게 잡으면 부하가 와도 스레드는 늘지 않고 응답 latency 만 길어집니다. 그러고는 큐가 끝까지 차면 `RejectedExecutionException` 으로 떨어집니다.
+core 크기까지 스레드를 만든 뒤에는 우선 큐에 작업을 넣고, 큐가 가득 차면 max 크기까지 늘어납니다. 기본적으로 모든 core 스레드가 시작부터 만들어지는 것은 아닙니다. 큐와 스레드가 모두 찼을 때는 거절 정책이 적용됩니다.
 
-이 풀이 차오르는 신호는 `executor.active`·`executor.queued` Actuator metric 에서 떠오릅니다. **`executor.queued` 가 지속적으로 0 이 아니면** 곁가지가 본가지를 압박하기 시작했다는 신호입니다. 알림이 30 초 늦게 도착하거나 비동기 로깅이 spike 치는 자리가 여기서 나옵니다.
+큐가 잠깐 생기는 것과 계속 늘어나는 것은 다릅니다. 알림이 허용 시간 안에 도착하는지, 오래된 작업을 언제 포기할지, 실패한 작업을 누가 다시 실행할지까지 함께 정해야 합니다. [Spring 비동기 실행 설명](https://docs.spring.io/spring-framework/reference/integration/scheduling.html)
 
-## Coroutine Dispatchers — 가벼울 거라는 직관의 함정
+## 코루틴으로 바꿔도 블로킹 호출은 남는다
 
-Kotlin 코루틴은 코드 위에서는 가볍지만, 실행되는 곳은 OS 스레드 위입니다. 그 "스레드 위" 가 어느 풀이냐는 디스패처가 결정합니다. `Dispatchers.Default` 는 CPU 바운드 작업용으로 `min(코어 수 × 2, 128)`, `Dispatchers.IO` 는 블로킹 I/O 용으로 기본 최대 64 개까지 늘어납니다.
+`suspend` 함수 안에서 JDBC를 호출한다고 JDBC가 비동기로 바뀌지는 않습니다. 블로킹 작업은 `IO`, 계산 작업은 `Default`처럼 작업의 특성에 맞춰 실행 위치를 고릅니다.
 
-```kotlin
-suspend fun loadProfile(userId: Long): Profile = coroutineScope {
-    val basic = async(Dispatchers.IO) { repository.find(userId) }
-    val score = async(Dispatchers.Default) { scoring.calculate(userId) }
-    Profile(basic.await(), score.await())
-}
-```
+`Dispatchers.IO.limitedParallelism(8)`은 특정 작업의 동시 실행을 제한하는 데 쓸 수 있습니다. 다만 독립된 전용 스레드 풀을 만드는 기능은 아닙니다. IO의 여러 view는 기본 IO 병렬도와 별개로 확장될 수 있으므로, view를 늘리면서 전체 DB·외부 API 용량을 넘어가지 않는지 확인해야 합니다.
 
-여기서 잘 깨지는 직관 두 가지입니다. 두 디스패처 풀이 **JVM 프로세스당 1 세트씩 공유** 라는 점이 첫째입니다. 컨테이너 안의 모든 코루틴이 같은 64 슬롯을 나눠 쓰니, "내가 만든 코루틴이라 가벼울 거야" 라는 직관이 가장 자주 깨지는 자리입니다. 둘째, `Dispatchers.IO` 가 64 슬롯에 붙는 신호는 외부 호출 timeout 증가와 함께 옵니다. 평소 200ms 로 끝나던 외부 API 가 갑자기 5 초씩 걸리기 시작하는 자리, 그게 IO 슬롯이 모자라거나 한 슬롯이 너무 오래 묶여 있다는 신호입니다.
-
-운영 시점에는 `kotlinx.coroutines.debug` 로 활성 코루틴 트리를 떠 보거나, `Dispatchers.IO.limitedParallelism(N)` 으로 슬롯 점유를 도메인별로 갈라 두는 게 안전합니다. 한 도메인의 외부 호출 지연이 다른 도메인까지 끌고 들어가지 않게 분리하는 결입니다.
-
-## CPU bound · IO bound · mixed 의 결정 트리
-
-세 풀 모두 크기를 잡을 때의 결정 트리가 결국 같은 결입니다. 작업의 모양이 CPU bound 인지 IO bound 인지 mixed 인지를 먼저 봅니다.
-
-- **CPU bound** — 영상 인코딩·해시·직렬화. 풀 크기 ≈ 할당된 코어 수 부근. 코어보다 크게 잡으면 컨텍스트 스위치 비용으로 처리량이 오히려 떨어집니다.
-- **IO bound** — DB·외부 API·파일 I/O. 풀 크기 ≈ 동시 대기 가능한 외부 응답 수. 외부 호출 평균 latency × 초당 요청 수가 출발점입니다.
-- **Mixed** — 일반 웹 요청. IO 비중에 가중치를 두되, 풀 크기 합이 cgroup CPU 한도를 의식하는 한도 안에 들어가야 합니다.
-
-다만 cgroup 8 코어 컨테이너에서 330 개의 스레드가 동시에 RUNNABLE 이 되면, 8 코어가 330 스레드를 돌리는 모양이 됩니다. 한 스레드가 CPU 를 받는 시간이 짧아지고 컨텍스트 스위치 비용이 폭증합니다. 풀 크기의 합은 CPU 한도와 짝으로 본다는 의식이 결국 같은 결의 결정 트리입니다.
-
-## 컨테이너 두 대가 한 호스트 위에 있을 때
-
-같은 호스트에 같은 컨테이너를 두 대 올리면 산술적으로는 약 660 개의 OS 스레드가 한 박스 위에 살게 됩니다. 실제로는 동시에 다 채워지지 않지만, 한 풀이 폭주하면 옆 컨테이너까지 같이 느려지는 자리가 여기서 나옵니다. 쿠버네티스 환경에서는 Pod 의 `resources.requests.cpu` 와 `limits.cpu` 가 이 합산을 통제하는 자리입니다.
-
-이건 같은 결의 **Bulkhead 패턴** 입니다. DB 커넥션 풀을 도메인별로 갈라 두는 결, `Dispatchers.IO.limitedParallelism(N)` 으로 외부 호출을 분리하는 결, 컨테이너 단위로 `resources.limits` 를 거는 결 — 모두 "한 자원의 폭주가 옆 자원을 끌고 들어가지 않게" 라는 같은 의식입니다. DB connection pool 의 결정도 결국 같은 자리에 있습니다.
-
-## 정리
-
-세 풀을 한 번에 튜닝하지 않습니다. 부하 테스트를 걸어두고 `tomcat.threads.busy`·`executor.queued`·`kotlinx.coroutines.debug` 로 어느 풀이 먼저 차오르는지부터 봅니다. Tomcat 이 200 에 붙으면 동기 블로킹 호출을 의심하고, `@Async` 큐가 길어지면 곁가지의 SLA 를 다시 정의하고, `Dispatchers.IO` 가 64 에 붙으면 한 도메인이 IO 슬롯을 독점하지 않는지 봅니다.
-
-DB 는 멀쩡한데 응답이 느려진다면 셋 중 어느 한 풀이 차오르고 있다는 신호이고, 풀 크기는 한도이고 한도는 합산으로 정해진다는 사실을 한 번 더 들여다봐야 합니다. 총 스레드 수가 늘었다는 사실보다, 어느 풀이 막혔는지부터 측정합니다.
+설정 변경의 기준은 스레드 수의 합계가 아니라 대기 원인입니다. 같은 부하에서 실행 중인 작업, 대기 시간, DB와 외부 서비스의 처리량을 비교해야 풀을 늘리는 변경이 도움이 됐는지 알 수 있습니다.

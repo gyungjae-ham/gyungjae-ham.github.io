@@ -1,324 +1,53 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-19T11:30:17+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 title: "의존성과 Testability — 테스트가 어렵다면 설계를 먼저 본다"
 slug: "dependency-and-testability"
 featured: false
 draft: false
-tags: ["testing", "dependency-injection", "architecture", "spring", "solid"]
-description: "DI, DIP, 숨겨진 의존성, 그리고 Testability 의 본질을 5-6년차 시각으로 정리. 테스트하기 어려운 코드는 도구의 문제가 아니라 설계의 문제입니다."
+tags:
+  [
+    "학습노트",
+    "testing",
+    "dependency-injection",
+    "architecture",
+    "spring",
+    "solid",
+  ]
+description: "인증 코드의 만료 경계 예시로 시간 입력을 제어하고, DI·DIP와 테스트 용이성을 구분합니다. 모든 의존성을 추상화해야 한다는 단정도 피합니다."
 ---
 
-> 2023-06 에 velog 에 정리한 글을 5-6년차 백엔드 시각으로 다시 손본 글입니다. 테스트 학습 시리즈의 두 번째 글이며, 이전 글 [개념, 대역](/posts/test-doubles-concept) 에서 본 다섯 가지 테스트 대역이 왜 필요한지를 설계 관점에서 되짚는 자리입니다.
+만료 시간이 있는 인증 코드를 테스트한다고 해보겠습니다. 메서드 안에서 현재 시간을 읽으면 실행할 때마다 입력이 달라집니다. 시간 경계에 가까운 테스트는 기다리거나 넓은 오차를 허용해야 할 수 있습니다. 이때 바꿀 것은 모든 객체의 구조가 아니라, 이번 규칙이 사용하는 시간 입력입니다.
 
-**TL;DR.** "테스트가 어렵다" 는 감각은 거의 항상 SUT 의 의존성 모양이 잘못되어 있다는 뜻입니다. 의존성 · DI · DIP · 숨겨진 의존성 — 이 네 단어로 그 모양을 진단하고, Testability 두 축(입력 변경 / 출력 검증) 으로 처방을 정렬합니다.
+## Clock을 받으면 경계를 바로 검사할 수 있다
 
-테스트를 짜다 보면 같은 회의가 반복됩니다. "이 메서드는 시간을 가지고 비교를 하는데, 테스트에서 시간을 어떻게 고정하죠?" "외부 API 호출이 들어가서 단위 테스트가 불가능합니다." 이런 대화에서 빠지기 쉬운 결론은 **"테스트가 어렵다"** 입니다. 그러나 정확한 결론은 다음과 같습니다.
-
-> 테스트가 어렵다면, 그것은 코드의 결함이 아니라 **설계의 문제** 입니다.
-
-이 글은 그 설계를 읽는 어휘 — 의존성, DI, DIP, 그리고 Testability — 를 정리합니다.
-
-## 의존성
-
-> **의존성** 은 어떤 객체가 다른 객체의 함수나 데이터를 사용하는 상태를 의미합니다.
-
-학습 노트로 더 풀어 적자면 다음 셋이 같은 의미입니다.
-
-- "A 가 B 에 의존한다."
-- "A 의 동작이 B 의 동작에 영향을 받는다."
-- "B 가 바뀌면 A 의 테스트가 깨질 수 있다."
-
-의존성 자체는 나쁜 것이 아닙니다. 어떤 시스템도 의존성 0 으로 동작하지 않습니다. 문제는 **의존성의 방향과 강도** 입니다. fat service 의 본질은 결국 "도메인 로직이 인프라(JPA·메일·결제) 에 강하게 의존하고 있다" 였습니다.
-
-### 강한 의존성의 세 가지 표지
-
-- **`new` 키워드로 협력자를 직접 생성** 하는 코드
-- **정적 메서드 호출** 이 비즈니스 분기에 끼어드는 코드 (`LocalDateTime.now()`, `UUID.randomUUID()`)
-- **싱글톤 객체** 의 상태를 직접 읽거나 변경하는 코드
-
-이 셋이 보이면 그 코드는 테스트를 쓰기 시작한 순간 막힙니다. 도구의 한계가 아니라, 협력자를 바꿔 끼울 자리가 없는 설계입니다.
-
-## DI — 의존성 주입
-
-> **DI(Dependency Injection)** 는 의존성을 약화시키는 기술입니다.
-
-핵심은 단순합니다. 협력자를 **클래스 내부에서 만들지 않고 외부에서 받습니다.**
-
-### Before — 협력자를 내부에서 생성
+다음은 Java의 `Clock`을 사용하는 Kotlin 예시입니다. 만료 시각과 같아지는 순간부터 만료로 보는 정책을 코드에 드러냈습니다.
 
 ```kotlin
-class Chef {
-    private val bread = Bread()
-    private val meat = Meat()
+import java.time.Clock
+import java.time.Instant
 
-    fun makeBurger(): Burger = Burger(bread, meat)
+class VerificationCode(private val expiresAt: Instant) {
+    fun isExpired(clock: Clock): Boolean =
+        !Instant.now(clock).isBefore(expiresAt)
 }
 ```
 
-- `Chef` 는 `Bread` 와 `Meat` 의 **구체 타입과 생성 방식** 까지 알고 있습니다.
-- 테스트에서 다른 종류의 빵·고기로 바꿔 끼울 자리가 없습니다.
-- `Bread` 의 생성자가 바뀌면 `Chef` 도 같이 바뀝니다.
+테스트에서는 `Clock.fixed(instant, ZoneOffset.UTC)`로 만료 직전·정각·직후를 각각 전달할 수 있습니다. 운영에서는 시스템 시계를 사용합니다. 이 선택은 테스트가 기다릴 필요를 줄이면서 ‘정확히 만료 시각이면 어떻게 되는가’라는 정책도 드러냅니다.
 
-### After — 협력자를 외부에서 주입
+## DI와 DIP가 해결하는 것은 다르다
 
-```kotlin
-class Chef(
-    private val bread: Bread,
-    private val meat: Meat,
-) {
-    fun makeBurger(): Burger = Burger(bread, meat)
-}
-```
+DI는 협력자를 외부에서 전달하는 기법입니다. 구체 클래스도 생성자로 주입할 수 있고 Spring이 없어도 가능합니다. DIP는 상위 정책이 하위 구현 세부사항에 끌려가지 않도록 의존 방향을 정하는 원칙입니다. 인터페이스를 만들었다는 사실만으로 충분하지 않고, 누가 그 계약을 정의하는지도 중요합니다.
 
-- `Chef` 는 협력자가 **어떻게 만들어지는지** 모릅니다.
-- 테스트에서 `Chef(FakeBread(), FakeMeat())` 로 자유롭게 바꿔 끼울 수 있습니다.
-- 생성 책임은 컨테이너(Spring) 또는 호출자에게 위임됩니다.
+예를 들어 주문 정책이 결제사의 SDK 응답 전체를 알지 않게 `PaymentGateway`를 정의할 수 있습니다. 대신 어댑터와 오류 번역 코드가 늘어납니다. 단순한 값 객체나 안정적인 계산 함수까지 일괄적으로 인터페이스로 감싸는 것은 비용에 비해 이점이 작을 수 있습니다.
 
-### 자주 오해되는 점
+## 테스트가 어렵다는 사실만으로 설계 오류를 확정하지 않는다
 
-- **DI 는 의존성을 제거하지 않습니다.** 약화시킬 뿐입니다. `Chef` 는 여전히 `Bread` 와 `Meat` 의 존재를 알아야 합니다.
-- **DI 는 프레임워크가 아니라 기법입니다.** Spring 없이도 생성자 파라미터만으로 가능합니다.
-- **DI 의 본질은 "하드코딩 회피" 가 아닙니다.** 협력자를 **바꿔 끼울 수 있는 자리** 를 만드는 것입니다. 그 자리가 곧 테스트의 출입구이며, 다음 절의 `Testability` 와 직결됩니다.
+Kotlin 클래스는 기본적으로 final입니다. final 메서드를 mock한다는 이유만으로 설계가 잘못됐다고 볼 수는 없습니다. mocking 지원은 도구와 버전에 따라 확인하되, 테스트가 내부 호출 순서를 지나치게 알고 있는지 살펴보는 것이 더 유용합니다.
 
-## DIP — 의존성 역전 원칙
+`new`나 정적 함수도 모두 문제는 아닙니다. 날짜 계산처럼 결과가 입력으로 결정되는 함수는 그대로 테스트하기 쉽습니다. 현재 시간·환경·네트워크처럼 결과가 외부 상태에 달린 의존성을 제어할 필요가 있는지 구분합니다.
 
-> **DIP(Dependency Inversion Principle)** 는 다음 두 줄로 요약됩니다.
->
-> 1. 상위 모듈과 하위 모듈이 모두 **추상화에 의존** 해야 한다.
-> 2. 추상화가 **세부 사항에 의존** 해서는 안 된다.
+UUID가 매번 달라도 형식이나 저장 값과 발송 값의 일치를 검사할 수 있습니다. 특정 생성값이 필요한 시나리오라면 생성기를 주입하면 됩니다. ‘고정할 수 없다’와 ‘아무것도 검증할 수 없다’는 다른 말입니다.
 
-DI 와 자주 혼동됩니다. 둘은 다른 개념입니다.
-
-| 구분 | DI (의존성 주입)              | DIP (의존성 역전 원칙)      |
-| ---- | ----------------------------- | --------------------------- |
-| 정의 | 의존성을 외부에서 받는 기법   | 의존 방향에 대한 원칙       |
-| 초점 | "누가 객체를 만드는가"        | "누가 누구를 알아야 하는가" |
-| 도구 | 생성자/세터 주입, DI 컨테이너 | 인터페이스, 추상 클래스     |
-| 결과 | 협력자 교체 가능              | 도메인이 인프라를 모름      |
-
-### 같이 적용되었을 때
-
-DI 만 적용하면 다음 형태가 됩니다.
-
-```kotlin
-class OrderService(private val orderJpaRepository: OrderJpaRepository) { ... }
-```
-
-- 협력자를 외부에서 받기는 합니다.
-- 그러나 `OrderService` 는 여전히 `OrderJpaRepository` 라는 **구체 타입(JPA)** 을 알고 있습니다.
-- DIP 는 적용되지 않은 상태입니다.
-
-DIP 까지 적용하면 다음 형태가 됩니다.
-
-```kotlin
-// 도메인 레이어
-interface OrderRepository {
-    fun findById(id: OrderId): Order?
-    fun save(order: Order): Order
-}
-
-class OrderService(private val orderRepository: OrderRepository) { ... }
-
-// 인프라 레이어
-@Repository
-class OrderJpaAdapter(
-    private val orderJpaRepository: OrderJpaRepository,
-) : OrderRepository { ... }
-```
-
-- `OrderService` 는 자신의 **도메인 레이어 인터페이스** 만 압니다.
-- `OrderJpaAdapter` 가 그 인터페이스를 구현하면서 의존 방향이 **도메인 ← 인프라** 로 뒤집힙니다.
-- 테스트에서는 `FakeOrderRepository` ([개념, 대역](/posts/test-doubles-concept) 에서 다룬 Fake) 로 자연스럽게 교체됩니다.
-
-DI 는 "어떻게 객체를 받느냐" 의 문제이고, DIP 는 "그 받는 객체의 타입이 추상이냐 구체냐" 의 문제입니다. **DI 만으로는 충분하지 않습니다.**
-
-## 숨겨진 의존성 — 가장 까다로운 종류
-
-생성자나 파라미터로 들어오는 의존성은 **눈에 보이는 의존성** 입니다. 적어도 어디에 있는지는 보입니다. 더 까다로운 것은 코드 내부에서 **표면에 드러나지 않는 의존성** 입니다.
-
-### 시간
-
-```kotlin
-class CertificationCode {
-    fun isExpired(): Boolean = createdAt.plusMinutes(5).isBefore(LocalDateTime.now())
-}
-```
-
-- `LocalDateTime.now()` 는 매 실행마다 다른 값을 돌려줍니다.
-- 이 메서드를 테스트하려면 "현재 시각" 을 고정할 자리가 없습니다.
-- 결국 `Thread.sleep` 같은 흉기를 끌어들이거나, 테스트가 비결정적으로 깨집니다.
-
-**해결** — 시간을 의존성으로 외부에 노출시킵니다.
-
-```kotlin
-class CertificationCode(
-    private val createdAt: LocalDateTime,
-    private val clock: Clock,
-) {
-    fun isExpired(): Boolean =
-        createdAt.plusMinutes(5).isBefore(LocalDateTime.now(clock))
-}
-```
-
-- 테스트에서는 `Clock.fixed(...)` 로 시각을 원하는 값에 박아 둘 수 있습니다.
-- 운영에서는 `Clock.systemDefaultZone()` 을 컨테이너가 주입합니다.
-
-### 랜덤·UUID
-
-```kotlin
-val code = UUID.randomUUID().toString()
-```
-
-- 매번 다른 값입니다. 어떤 값을 기대해야 하는지 정할 수 없습니다.
-- 테스트는 "값이 null 이 아니다" 정도밖에 검증할 수 없습니다.
-
-**해결** — 코드 생성 책임을 인터페이스로 외부화합니다.
-
-```kotlin
-interface CodeGenerator {
-    fun generate(): String
-}
-
-class UuidCodeGenerator : CodeGenerator {
-    override fun generate(): String = UUID.randomUUID().toString()
-}
-
-class FixedCodeGenerator(private val value: String) : CodeGenerator {
-    override fun generate(): String = value
-}
-```
-
-테스트에서는 `FixedCodeGenerator("test-code")` 를 주입해 정확한 값을 기대값으로 박을 수 있습니다.
-
-### 환경 변수·파일 경로
-
-`System.getenv(...)`, `File("/etc/...")` 같이 코드 안에 박힌 경로도 같은 부류입니다. 인터페이스 + 주입으로 빼는 패턴이 공통적입니다.
-
-두 가지 패턴이 같은 부류입니다.
-
-- **숨겨진 의존성** — `Clock.systemUTC()` 처럼 표면에 드러나지 않은 의존성
-- **하드코딩된 값** — 파일 경로, 외부 시스템 식별자
-
-이 둘이 보이는 곳마다 테스트가 잡지 못하는 영역이 생깁니다. 운영에서 한 번 사고가 난 뒤에야 발견되는 종류입니다.
-
-## Testability — 진짜 정의
-
-> **Testability** 는 얼마나 쉽게 **입력을 변경하고 출력을 검증** 할 수 있는가입니다.
-
-이 한 줄에 본질이 다 담겨 있습니다.
-
-- **입력 변경 용이성** — 협력자를 바꿔 끼울 수 있는가, 시간·랜덤·환경을 제어할 수 있는가.
-- **출력 검증 용이성** — 결과가 반환값·상태로 드러나는가, 아니면 부수효과로만 알 수 있는가.
-
-이 두 축이 무너진 코드는 다음 증상을 동반합니다.
-
-- `@SpringBootTest` 없이는 테스트가 불가능합니다.
-- 같은 테스트가 어떤 날은 통과하고 어떤 날은 깨집니다 (flaky test).
-- 검증 코드가 `assertThat(result).isNotNull()` 수준에서 멈춥니다.
-
-이 증상이 모이면, 손대야 할 곳은 테스트 코드가 아니라 SUT 의 설계입니다.
-
-## 테스트 작성 조언 네 가지
-
-원본 노트에 적었던 짧은 bullet 들을 5-6년차 시각으로 다시 풀어 적습니다.
-
-### 1) Private 메서드는 테스트하지 않는다
-
-```kotlin
-class OrderService {
-    fun placeOrder(request: PlaceOrderRequest): OrderId { ... }
-    private fun validate(request: PlaceOrderRequest) { ... }
-}
-```
-
-`validate(...)` 만 따로 테스트하고 싶어지는 순간이 있습니다. 그러나 private 메서드를 직접 테스트하려면 리플렉션을 끌어들이거나 접근 제어자를 풀어야 합니다. 둘 다 좋은 길이 아닙니다.
-
-**더 좋은 결론은 다음 둘 중 하나입니다.**
-
-- public 메서드를 통한 행위 검증으로 충분하다 → 그대로 둡니다.
-- private 메서드의 책임이 충분히 크다 → 별도 클래스로 분리해 public 으로 노출합니다.
-
-"private 을 테스트하고 싶다" 는 욕구는 대부분 **숨겨진 책임을 끌어내라는 청구서** 입니다.
-
-### 2) final 메서드 stubbing 피하기
-
-`Mockito` 는 final 메서드도 stubbing 할 수 있지만 (`mockito-inline`), 그 자체로 "이 final 메서드를 가짜로 만들고 싶다" 는 욕구가 설계 오류입니다. final 은 "이 동작은 바뀌지 않는다" 는 선언인데, 테스트에서 바꿔 끼우려 한다면 그 선언이 거짓이 되거나, SUT 가 그 메서드를 직접 부르지 말아야 한다는 뜻이 됩니다.
-
-### 3) DAMP > DRY (테스트 한정)
-
-운영 코드의 원칙은 **DRY(Don't Repeat Yourself)** 입니다. 같은 로직을 두 군데 두지 않습니다.
-
-테스트 코드의 원칙은 다릅니다. **DAMP(Descriptive And Meaningful Phrases)** 가 더 우선합니다.
-
-- 테스트는 **한 번 읽고 의도를 이해할 수 있어야** 합니다.
-- 중복 제거를 위해 helper 메서드 5단계 깊이로 추상화하면, 테스트가 깨졌을 때 흐름을 다시 따라가는 데 시간이 두 배로 듭니다.
-- 같은 fixture 가 세 번 반복되는 편이, 그것을 한 helper 로 추상화해 의도를 가리는 것보다 낫습니다.
-
-다만 fixture 생성·검증 보조 같은 일부 영역은 helper 로 묶는 것이 가독성에도 좋습니다. **"이 helper 가 의도를 드러내는가, 가리는가"** 가 기준입니다.
-
-### 4) 테스트에 논리 로직을 넣지 않는다
-
-```kotlin
-@Test
-fun `여러 사용자 즐겨찾기 토글`() {
-    val users = (1..5).map { User(id = UserId(it.toLong()), bookmarked = false) }
-    for (user in users) {
-        user.toggleBookmark()
-        assertThat(user.bookmarked).isEqualTo(it % 2 == 1)
-    }
-}
-```
-
-- `for` 와 `if` 가 테스트 안에 들어와 있습니다.
-- 테스트가 통과해도 **테스트 코드 자체에 버그가 있을** 가능성이 생깁니다.
-
-`@ParameterizedTest` 또는 같은 케이스를 명시적으로 펼친 별도 테스트로 옮기는 편이 안전합니다.
-
-```kotlin
-@ParameterizedTest
-@MethodSource("toggleCases")
-fun `즐겨찾기 토글 결과`(initial: Boolean, expected: Boolean) {
-    val sut = User(id = UserId(1), bookmarked = initial)
-    sut.toggleBookmark()
-    assertThat(sut.bookmarked).isEqualTo(expected)
-}
-```
-
-테스트가 검증하는 것은 SUT 의 로직이지, 테스트 코드 자체의 로직이 아닙니다.
-
-## 함정 — DI 가 안티패턴이 되는 순간
-
-DI 와 DIP 가 답이라고 해서, 모든 협력자를 인터페이스로 빼야 한다는 뜻은 아닙니다. 자주 보이는 함정 둘입니다.
-
-### 함정 1 — 1:1 인터페이스 남발
-
-`OrderService` 의 협력자가 `OrderRepository`, `OrderValidator`, `OrderEventPublisher`, `OrderNumberGenerator` 등으로 흩어지고, 각각의 구현체는 **단 하나** 인 상태가 종종 보입니다. 이 경우 인터페이스는 **추상화가 아니라 그냥 한 겹의 껍데기** 가 됩니다.
-
-판단 기준은 단순합니다.
-
-- 구현체가 **둘 이상이 될 가능성** 이 있는가 (테스트 Fake 포함)
-- 협력자가 **외부 시스템 경계** 를 넘는가 (DB · API · 메시지큐 등)
-
-이 둘 중 하나라도 해당하지 않으면 인터페이스를 굳이 만들 필요가 없을 수 있습니다.
-
-### 함정 2 — 생성자 파라미터 폭발
-
-DI 를 잘 적용하면 생성자 파라미터가 자연스럽게 늘어납니다. 그런데 6개를 넘기 시작하면, SUT 의 책임이 이미 너무 많다는 뜻입니다. 답은 더 많은 의존성을 받는 것이 아니라 **도메인 메서드로 책임을 옮기는 것** 입니다. 저는 8개짜리 생성자에 협력자 한 개를 더 욱여넣다가 한 PR 에서 거절당한 적이 있습니다. 그 거절이 맞았습니다.
-
-## 회고 — "테스트를 못 짠다" 는 말은 거의 항상 설계 진단이다
-
-5-6년차가 되어 돌아보면, "이 코드는 테스트하기 어렵다" 고 느낀 순간에 도구를 더 정교하게 쓰려 했던 시도는 거의 모두 헛수고였습니다.
-
-- `PowerMock` 으로 정적 메서드를 stubbing 하려 했던 한 분기 — 답은 `Clock` 주입 한 줄이었습니다.
-- 리플렉션으로 private 메서드를 검증하려 했던 두 PR — 답은 그 책임을 별도 클래스로 옮기는 것이었습니다.
-- `@MockBean` 6개로 둘러싼 `@SpringBootTest` 한 벌 — 답은 SUT 를 두 개의 작은 Service 로 쪼개는 것이었습니다.
-
-세 번 모두 진단을 잘못해서 비용을 두 배로 치렀습니다. 지금은 테스트가 어색해지는 순간 도구를 의심하지 않고, SUT 의 의존성 모양을 먼저 그려봅니다. 그 습관이 가장 큰 변화였습니다.
-
-- **의존성** 은 "다른 객체의 함수를 쓰는 상태" 입니다. `new`, 정적 메서드, 싱글톤 직접 호출 — 이 셋이 강한 의존성의 표지입니다.
-- **DI** 는 협력자를 외부에서 받는 기법, **DIP** 는 도메인이 추상에 의존하게 하는 원칙입니다. 다른 개념이며 함께 적용해야 효과가 납니다.
-- **숨겨진 의존성** (시간·랜덤·환경) 은 가장 까다로운 종류이며, 인터페이스로 외부화하는 것이 일반적인 해법입니다.
-- **Testability** 는 "입력 변경 용이성 + 출력 검증 용이성" 두 축으로 본질이 다 담깁니다.
-
-레이어별 적용은 [레이어별 테스트 전략](/posts/layered-testing-strategy) 글로 이어집니다.
+테스트가 복잡해질 때는 제어하기 어려운 입력, 관측하기 어려운 결과, 한 번에 너무 많은 일을 하는 책임을 각각 봅니다. 생성자 인자가 몇 개라는 이유로 구조를 바꾸기보다, 구체적으로 어떤 변경이 여러 테스트를 함께 깨뜨리는지부터 찾습니다.

@@ -2,7 +2,7 @@
 author: "luca"
 pubDatetime: 2026-06-24T00:00:00+09:00
 title: "prefetch를 넣었는데 exists 쿼리는 그대로였다"
-featured: false
+featured: true
 draft: false
 tags: ["Django", "DRF", "N+1"]
 description: "주문 항목마다 판매 가능한 옵션을 다시 찾고 있었습니다. 옵션을 미리 읽는 조회와 그 데이터를 사용하는 판정 함수를 함께 수정했습니다."

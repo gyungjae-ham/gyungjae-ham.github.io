@@ -1,11 +1,12 @@
 ---
 author: "luca"
 pubDatetime: 2023-05-18T11:55:58+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 title: "SpringBoot JPA로 Entity 클래스 구성하기"
 slug: "springboot-jpa-entity-setup"
 featured: false
 draft: false
-tags: ["spring-boot", "jpa", "entity", "setup"]
+tags: ["학습노트", "spring-boot", "jpa", "entity", "setup"]
 description: "JPA Entity 클래스를 구성할 때 자주 사용하는 어노테이션, Pattern Matching, Auditing 필드 분리 방법을 정리합니다."
 ---
 
@@ -22,9 +23,9 @@ Entity 클래스 작성 시 자주 등장하는 어노테이션과 설정을 정
 - **`@OneToMany(mappedBy = "article", cascade = CascadeType.ALL)`** — 양방향 관계 설정
 - **`@CreatedDate`, `@CreatedBy`, `@LastModifiedDate`, `@LastModifiedBy`** — 감시 필드
 
-## Pattern Matching (Java 14+)
+## Pattern Matching (Java 16 정식 기능)
 
-기존 `instanceof` 후 명시적 캐스팅을 하던 코드 대신, 직접 변수 선언이 가능합니다.
+Java 14·15에서는 preview였고 Java 16에서 정식 기능이 됐습니다. 기존 `instanceof` 후 명시적 캐스팅을 하던 코드 대신 직접 변수를 선언할 수 있습니다. [JEP 394](https://openjdk.org/jeps/394)
 
 ```java
 if (!(o instanceof Article article)) return false;
@@ -43,4 +44,6 @@ if (!(o instanceof Article article)) return false;
 
 ## equals / hashCode
 
-Entity 클래스에서 `equals` 와 `hashCode` 를 오버라이드할 때는 **모든 필드가 아닌 `id` 만 비교** 하는 것이 일반적입니다. 영속성 컨텍스트가 동일성을 보장하는 단위가 식별자이기 때문입니다.
+DB 생성 ID로 동등성을 구현할 때는 저장 전 `id == null`인 서로 다른 객체를 같다고 취급하지 않아야 합니다. 또한 저장 후 ID가 생기며 hash 값이 바뀌면 이미 HashSet에 넣은 객체를 찾지 못할 수 있습니다. Hibernate 프록시와 일반 객체의 클래스 비교도 검토 대상입니다.
+
+따라서 ID만 비교하는 코드를 일괄 적용하기보다, 불변 자연키가 있는지·저장 전 객체를 컬렉션 키로 쓰는지·준영속 객체끼리 비교하는지를 먼저 정합니다. 영속성 컨텍스트의 인스턴스 동일성과 애플리케이션의 `equals` 정책은 별개의 문제입니다.

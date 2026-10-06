@@ -1,11 +1,12 @@
 ---
 author: "luca"
 pubDatetime: 2023-05-24T22:38:06+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 title: "연관관계 매핑"
 slug: "jpa-association-mapping"
 featured: false
 draft: false
-tags: ["jpa", "association", "relationship", "orm"]
+tags: ["학습노트", "jpa", "association", "relationship", "orm"]
 description: "테이블 중심 설계의 한계, 단방향·양방향 연관관계, 연관관계의 주인과 mappedBy 까지 객체 지향 매핑의 핵심을 정리한 학습 노트입니다."
 ---
 
@@ -13,7 +14,7 @@ description: "테이블 중심 설계의 한계, 단방향·양방향 연관관�
 
 ## 테이블을 중심으로 엔티티를 만들 경우
 
-테이블 구조를 기준으로 엔티티를 설계하면 객체 지향적이지 않은 코드가 됩니다.
+외래키를 ID 값으로만 가지고 있으면 관련 객체를 직접 조회해야 합니다. 객체 참조를 매핑하는 방법과 필요한 시점에 ID로 조회하는 방법은 각각 결합도와 조회 비용이 다릅니다. 아래 코드는 매핑에 필요한 부분만 남겼으며 기본 생성자·접근자 등은 생략했습니다.
 
 ```java
 @Entity
@@ -36,7 +37,7 @@ public class Order {
 }
 ```
 
-이 경우 연관된 객체에 접근하려면 여러 번의 쿼리를 거쳐야 합니다.
+이 예시에서는 주문과 회원을 따로 조회합니다. 객체 참조로 바꾸더라도 지연 로딩을 사용하면 추가 SQL이 발생할 수 있으므로, 매핑만으로 쿼리 수가 줄어든다고 보지는 않습니다.
 
 ```java
 Order order = em.find(Order.class, 1L);
@@ -53,6 +54,8 @@ public class Order {
     @Column(name = "order_id")
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
     private Member member;
     // ...
 }
@@ -61,14 +64,9 @@ public class Order {
 Member findMember = order.getMember();
 ```
 
-## 테이블 설계의 문제점
+## ID로 연결할지 객체로 탐색할지
 
-- 객체 설계가 테이블 설계에 맞춰지게 됩니다.
-- 외래키가 객체에 그대로 노출됩니다.
-- 객체 그래프 탐색이 불가능합니다.
-- UML 관계가 부정확해집니다.
-
-> **UML (Unified Modeling Language)**: 실제 코드를 작성하기 전에 소프트웨어 아키텍처, 변수, 함수를 계획하기 위한 시각화 기법입니다.
+ID만 보관하면 객체 그래프를 바로 탐색할 수는 없지만, 관련 엔티티를 언제 읽을지 호출부에서 명확히 정할 수 있습니다. 객체 참조는 탐색을 편하게 만드는 대신 로딩 시점과 연관관계 관리 책임을 고려해야 합니다. ID를 사용했다는 사실만으로 설계나 UML이 잘못됐다고 판단하지 않습니다.
 
 ## 연관관계가 필요한 이유
 
@@ -107,11 +105,11 @@ public class Team {
 **양방향 매핑 규칙**
 
 - 주인만 외래키를 관리합니다 (생성, 수정).
-- 주인이 아닌 쪽은 읽기 전용입니다.
+- 주인이 아닌 쪽의 변경만으로는 이 관계의 FK가 갱신되지 않습니다. 컬렉션 자체를 수정할 수 없다는 뜻은 아닙니다.
 - 주인은 `mappedBy`를 사용하지 않습니다.
 - 주인이 아닌 쪽은 `mappedBy`로 주인을 지정합니다.
 
-**외래키가 있는 쪽을 주인으로 지정합니다.**
+**여기서 다루는 다대일·일대다 양방향 관계에서는 외래키가 있는 다대일 쪽이 주인입니다.**
 
 ```java
 // Member 가 주인 (TEAM_ID 를 가짐)
@@ -130,7 +128,7 @@ public class Member {
 **잘못된 예**
 
 ```java
-team.getMembers().add(member);  // 주인이 아님, 읽기 전용
+team.getMembers().add(member);  // 메모리만 변경, 이 코드만으로 FK는 갱신되지 않음
 ```
 
 **올바른 예**
@@ -141,7 +139,7 @@ member.setTeam(team);  // 주인 쪽
 
 ### 순수 객체 상태를 위해 양쪽 모두 설정
 
-DB로 플러시하지 않으면, 주인이 아닌 쪽에만 설정한 변경은 메모리상의 객체에 반영되지 않습니다. 이를 방지하기 위해 항상 양쪽 모두 설정합니다.
+`team.getMembers().add(member)`는 메모리의 컬렉션을 바꾸지만 FK를 쓰는 `member.team`은 바꾸지 않습니다. 반대로 `member.setTeam(team)`만 호출하면 DB의 FK는 갱신할 수 있어도 이미 로드된 `team.members`는 자동으로 추가되지 않습니다. 두 객체 참조를 함께 관리해야 메모리와 저장 결과가 어긋나지 않습니다. 아래는 최초 연결 예시이며, 팀을 변경할 때는 이전 팀 컬렉션에서 제거하는 처리도 필요합니다.
 
 ```java
 public void setTeam(Team team) {

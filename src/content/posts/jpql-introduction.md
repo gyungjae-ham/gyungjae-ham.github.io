@@ -1,15 +1,18 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-15T20:53:39+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 title: "객체지향 쿼리 언어 (JPQL)"
 slug: "jpql-introduction"
 featured: false
 draft: false
-tags: ["jpa", "jpql", "orm"]
+tags: ["학습노트", "jpa", "jpql", "orm"]
 description: "JPA 가 지원하는 쿼리 방법들과 JPQL 의 문법 — 프로젝션, 페이징, 조인, 서브쿼리, 기본 함수까지 — 를 한 번에 훑습니다."
 ---
 
-> 김영한님의 JPA 로드맵을 따라 학습하면서 정리한 노트입니다.
+> 김영한님의 JPA 로드맵을 따라 학습한 노트입니다. 기본 문법은 JPA 2.x 기준이며 Spring Boot 3의 Jakarta Persistence에서는 import가 `javax.persistence`에서 `jakarta.persistence`로 바뀝니다. 아래는 엔티티 매핑과 EntityManager 준비를 생략한 개별 쿼리 예시입니다.
+
+회원과 팀을 예로 문법을 살펴봅니다. 조회 결과가 필요한 필드 몇 개뿐이라면 DTO 프로젝션을, 엔티티 관계를 함께 읽어야 한다면 [fetch join](/posts/jpql-path-fetchjoin-polymorphism/)을 이어서 봅니다. 표준 JPQL과 Hibernate 확장 문법은 구분합니다.
 
 ## JPA가 지원하는 다양한 쿼리 방법
 
@@ -50,14 +53,14 @@ List<Member> result = em.createQuery(jpql, Member.class).getResultList();
 
 - 문자가 아닌 자바 코드로 `JPQL` 을 작성할 수 있도록 해줍니다.
 - `JPQL` 빌더 역할입니다.
-- **컴파일 시점에 문법 오류를 찾을 수 있다는 강력한 장점이 있습니다.**
+- **필드 이름·타입의 오류를 컴파일 시점에 찾는 데 유리합니다.** 생성된 JPQL의 구현체 지원 여부와 쿼리 의미까지 모두 검증하는 것은 아닙니다.
 - 동적 쿼리 작성이 편리합니다.
 - **단순하고 쉽습니다 (실무에서 사용하는 것을 권장합니다).**
 
 ```java
 // JPQL
 // SELECT m FROM Member m WHERE m.age > 18
-JPAFactoryQuery query = new JPAQueryFactory(em);
+JPAQueryFactory query = new JPAQueryFactory(em);
 QMember m = QMember.member;
 
 List<Member> list =
@@ -69,7 +72,7 @@ List<Member> list =
 
 ## JDBC 직접 사용, SpringJdbcTemplate 등
 
-- `JPA` 를 사용하면서 `JDBC` 커넥션을 직접 사용하거나, 스프링 `JdbcTemplate`, `MyBatis` 등을 함께 사용 가능합니다.
+- JPA와 JDBC·JdbcTemplate·MyBatis를 함께 쓸 수 있습니다. 같은 트랜잭션에 참여하는지 확인하고, JPA 변경을 직접 SQL에서 읽어야 하면 먼저 flush합니다. 직접 SQL로 수정한 뒤에는 영속성 컨텍스트에 남은 값도 갱신하거나 비워야 합니다.
 - 단, 영속성 컨텍스트를 적절한 시점에 강제로 플러시해야 합니다.
 
 ## JPQL 문법
@@ -85,13 +88,13 @@ List<Member> list =
 - `GROUP BY`, `HAVING`
 - `ORDER BY`
 
-### TypeQuery, Query
+### TypedQuery, Query
 
-- **`TypeQuery`**: 반환 타입이 명확할 때 사용합니다.
+- **`TypedQuery`**: 반환 타입이 명확할 때 사용합니다.
 - **`Query`**: 반환 타입이 명확하지 않을 때 사용합니다.
 
 ```java
-TypeQuery<Member> query
+TypedQuery<Member> typedQuery =
 	em.createQuery("SELECT m FROM Member m", Member.class);
 
 Query query =
@@ -160,7 +163,7 @@ Query query =
 
 ```java
 // 페이징 쿼리
-String jpql = "SELECT m FROM Member m ORDER BY m.name DESC";
+String jpql = "SELECT m FROM Member m ORDER BY m.name DESC, m.id DESC";
 List<Member> resultList = em.createQuery(jpql, Member.class)
 								.setFirstResult(10)
                                     .setMaxResults(20)
@@ -185,18 +188,18 @@ List<Member> resultList = em.createQuery(jpql, Member.class)
 - **JPQL**
 
   ```
-  SELECT m, t FROM Member m LEFT JOIN m.team t ON t.name = 'A
+  SELECT m, t FROM Member m LEFT JOIN m.team t ON t.name = 'A'
   ```
 
 - **SQL**
 
   ```
-  SELECT m.*, t.* FROM Member m LEFT JOIN Team t ON m.TEAM_ID = t.id and t.name = 'A
+  SELECT m.*, t.* FROM Member m LEFT JOIN Team t ON m.TEAM_ID = t.id and t.name = 'A'
   ```
 
 ### 서브 쿼리
 
-- **보통 메인 쿼리와 서브쿼리가 아무런 상관이 없어야 성능이 잘 나옵니다.**
+- 상관 서브쿼리의 비용은 데이터 분포·인덱스·DB 최적화에 따라 달라집니다. 상관관계가 있다는 이유만으로 느리다고 단정하지 않고 같은 결과의 JOIN·EXISTS와 실행 계획을 비교합니다.
 - 나이가 평균보다 많은 회원
 
   ```
@@ -207,7 +210,7 @@ List<Member> resultList = em.createQuery(jpql, Member.class)
 - 한 건이라도 주문한 고객
 
   ```
-  SELECt m FROM Member m
+  SELECT m FROM Member m
   WHERE (SELECT COUNT(o) FROM Order o WHERE m = o.member) > 0
   ```
 
@@ -224,7 +227,7 @@ List<Member> resultList = em.createQuery(jpql, Member.class)
 
   ```
   SELECT m FROM Member m
-  WHERE EXISTS (SELECT t FROM m.team t WHERE t.name = 'A')
+  WHERE EXISTS (SELECT t FROM Team t WHERE t = m.team AND t.name = 'A')
   ```
 
 - 전체 상품 각각의 재고보다 주문량이 많은 주문들

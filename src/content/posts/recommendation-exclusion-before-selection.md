@@ -4,6 +4,7 @@ pubDatetime: 2026-10-02T00:00:00+09:00
 title: "추천에서 상품 하나를 빼려면 후보 수도 다시 세야 했다"
 featured: false
 draft: false
+workStatus: closed
 tags: ["Django", "recommendation", "testing"]
 description: "래플 당첨자 결제용 상품이 일반 홈 추천에 포함됐습니다. 상품을 빼는 것에 더해 카테고리 선정에 쓰는 후보 수와 보충 경로도 함께 수정했습니다."
 ---

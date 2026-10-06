@@ -1,316 +1,54 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-22T14:14:32+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 title: "레이어별 테스트 — Repository, Service, Controller 를 어디까지 어떻게"
 slug: "layered-testing-strategy"
 featured: false
 draft: false
-tags: ["testing", "unit-test", "integration-test", "spring", "controller-test"]
-description: "Repository·Service·Controller 각 레이어를 어디까지 어떻게 테스트할지, JUnit5·Spring Test·MockMvc 의 도구들을 5-6년차 시각으로 정렬합니다."
+tags:
+  [
+    "학습노트",
+    "testing",
+    "unit-test",
+    "integration-test",
+    "spring",
+    "controller-test",
+  ]
+description: "규칙·DB·HTTP·빈 연결에서 찾을 실패를 기준으로 테스트 환경을 고릅니다. 웹 슬라이스의 보안 필터, 테스트 롤백 범위와 컨텍스트 캐시도 함께 다룹니다."
 ---
 
-> 2023-06 에 velog 에 정리한 글을 5-6년차 백엔드 시각으로 다시 손본 글입니다. 테스트 학습 시리즈의 세 번째 글이며, 이전 글들 ([개념, 대역](/posts/test-doubles-concept), [의존성과 Testability](/posts/dependency-and-testability)) 에서 다룬 도구·원칙을 실제 레이어에 적용하는 자리입니다.
+주문 기능을 테스트할 때 모든 케이스에서 웹 서버와 DB를 띄울 필요는 없습니다. 반대로 Service 계산만 통과했다고 실제 요청·저장까지 검증된 것도 아닙니다. 어떤 실패를 찾으려는지에 따라 테스트 환경을 고릅니다.
 
-**TL;DR.** Repository 는 `@DataJpaTest` + 진짜 DB, Service 는 Fake 기반 단위 테스트, Controller 는 `@WebMvcTest` + MockMvc 가 1순위입니다. `@SpringBootTest` 는 핵심 시나리오 한정으로만 둡니다. CI 가 5분을 넘기 시작하면 PR 한 번을 올릴 때마다 컨텍스트 스위칭 비용이 누적되고, 결국 테스트를 안 짜게 됩니다.
+| 확인할 동작                | 시작할 수 있는 구성        | 남는 범위                    |
+| -------------------------- | -------------------------- | ---------------------------- |
+| 할인·만료 같은 규칙        | 객체를 직접 만든 테스트    | Spring 설정과 저장소         |
+| JPA 매핑·조회              | `@DataJpaTest`와 테스트 DB | 웹 요청·외부 연동            |
+| 요청 변환·검증·응답        | `@WebMvcTest`와 MockMvc    | 실제 네트워크·대체한 Service |
+| 실제 빈의 연결과 주요 흐름 | `@SpringBootTest`          | 환경에 따라 외부 시스템      |
 
-테스트를 시작할 때 가장 자주 던지는 질문은 단순합니다. **"이 레이어는 어디까지 어떻게 테스트해야 하나요?"** Repository 는 DB 까지 띄워야 하는지, Service 는 mock 으로 둘러싸야 하는지, Controller 는 HTTP 까지 검증해야 하는지. 같은 답이 모든 프로젝트에 들어맞지는 않지만, 레이어마다 권장 도구와 흔한 함정의 기본 결은 정렬되어 있습니다. 이 글은 그 결을 정리합니다.
+이 글의 애너테이션 설명은 Spring Boot 3.x를 기준으로 합니다. 컨텍스트를 좁히는 것은 테스트가 검증할 범위를 명확히 하는 선택이지, 모든 통합 테스트를 최소 개수로 줄이라는 규칙은 아닙니다.
 
-## 사전 정리 — JUnit5 의 확장 지점
+## Repository는 저장소의 의미를 확인한다
 
-본론 전에 어휘 정리부터 합니다. 레이어별 테스트 코드에 거의 항상 등장하는 어노테이션 둘입니다.
+조건 없는 조회보다 상태 필터, 정렬 동률, null, 중복 결과처럼 쿼리의 의도가 드러나는 데이터를 준비합니다. DB에 실제로 쓰였는지 보려면 [flush 후 재조회](/posts/datajpatest-feature/)를 사용합니다.
 
-### `@ExtendWith`
+H2와 MySQL의 SQL·락 동작이 같다고 가정하지 않습니다. 사용하는 DB 엔진과 버전의 테스트 인스턴스를 마련하면 검증 범위를 맞추기 쉽습니다. 기본 테스트 롤백은 해당 테스트 트랜잭션을 정리할 뿐, 별도 스레드·다른 트랜잭션·외부 캐시까지 초기화하지는 않습니다.
 
-> JUnit5 의 lifecycle 에 외부 기능을 끼워 넣는 확장 지점입니다.
+## Service는 결과와 실패 정책을 확인한다
 
-자주 쓰이는 형태 둘입니다.
+협력자는 [mock이나 fake](/posts/test-doubles-concept/)로 대체할 수 있습니다. 이메일의 본문·횟수는 두 방식 모두 검증 가능합니다. 기록 목록을 읽는 검증과 mock의 인자 검증을 본질적으로 다른 수준의 신뢰라고 보지 않습니다.
 
-- **`@ExtendWith(SpringExtension::class)`** — Spring TestContext Framework 를 JUnit5 와 연결합니다. `@SpringBootTest`, `@DataJpaTest`, `@WebMvcTest` 같은 어노테이션은 내부에서 이미 이 확장을 끌고 옵니다.
-- **`@ExtendWith(MockitoExtension::class)`** — Mockito 의 mock 컨텍스트를 JUnit5 와 연결합니다. `@Mock`, `@InjectMocks` 같은 어노테이션을 활성화시킵니다.
+대역을 쓰는 테스트에서는 실제 DB 제약, 트랜잭션, 메일 프로토콜을 검증하지 않습니다. 이런 조건은 별도 통합 테스트에서 확인합니다. 시간과 생성값의 경계가 중요하면 [Clock 같은 입력](/posts/dependency-and-testability/)을 제어합니다.
 
-5-6년차 코드베이스에서는 보통 어느 한 쪽만 명시적으로 적습니다. Spring 컨텍스트가 필요 없는 순수 단위 테스트라면 Mockito 만, Spring 컨텍스트가 필요하면 Spring 확장이 자동으로 들어옵니다.
+## 웹 테스트에도 보안 필터가 들어올 수 있다
 
-### 테스트 슬라이스 어노테이션 한눈에
+`@WebMvcTest`는 MVC 슬라이스와 함께 Spring Security 구성을 포함할 수 있습니다. 서비스 빈을 대체했다고 인증·인가가 없어지는 것은 아닙니다. 프로젝트의 `SecurityFilterChain`을 필요한 범위로 가져오고, 인증 사용자와 권한, CSRF가 필요한 요청을 명시합니다.
 
-Spring Boot 가 제공하는 "테스트 슬라이스" 어노테이션을 한 표로 정리합니다.
+예를 들어 인증된 POST의 검증은 `user(...)` 또는 `@WithMockUser`로 사용자를 제공하고, CSRF가 켜져 있다면 `csrf()`를 추가하는 방식입니다. 반대로 미인증 요청과 권한 부족 요청이 의도한 401·403 또는 리다이렉트로 처리되는지도 따로 확인합니다. MVC 단독 설정의 기본 예시는 [Controller 테스트](/posts/writing-controller-tests/)에 있습니다.
 
-| 어노테이션        | 띄우는 범위                               | 주 용도                     | 속도      |
-| ----------------- | ----------------------------------------- | --------------------------- | --------- |
-| `@SpringBootTest` | 전체 ApplicationContext                   | E2E 또는 무거운 통합 테스트 | 가장 느림 |
-| `@DataJpaTest`    | JPA + DataSource + 트랜잭션               | Repository 통합 테스트      | 중간      |
-| `@WebMvcTest`     | MVC 레이어 (Controller + Filter + Advice) | Controller 단위·통합        | 빠름      |
-| `@JsonTest`       | Jackson 직렬화 영역                       | DTO 변환 검증               | 빠름      |
-| 슬라이스 없음     | 컨텍스트 미사용                           | 도메인 단위 테스트          | 가장 빠름 |
+## 실행 시간은 컨텍스트 재사용을 고려한다
 
-원칙은 단순합니다. **필요한 만큼만 띄웁니다.** `@SpringBootTest` 가 모든 곳에 깔려 있다면, 시스템이 RDB 와 외부 인프라에 강결합되어 있다는 뜻입니다. 슬라이스를 선택할 자리 자체가 없는 상태입니다.
+Spring은 동일한 설정의 테스트 컨텍스트를 캐시합니다. 매 테스트 메서드가 전체 애플리케이션을 다시 부팅하는 것은 아닙니다. 서로 다른 mock 빈 구성이나 `@DirtiesContext` 등이 재사용에 미치는 영향을 살펴봐야 합니다. [Spring TestContext 캐시](https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/caching.html)
 
-## Repository 테스트
-
-### 권장 도구
-
-Repository 의 검증 대상은 거의 항상 **쿼리** 입니다. JPQL · QueryDSL · Native Query 가 의도한 결과를 돌려주는지가 핵심이며, 이는 진짜 DB(또는 그에 준하는 환경) 가 있어야만 검증됩니다.
-
-```kotlin
-@ExtendWith(SpringExtension::class)
-@DataJpaTest(showSql = true)
-@TestPropertySource("classpath:test-application.properties")
-@Sql("/sql/user-repository-test-data.sql")
-class UserRepositoryTest {
-
-    @Autowired
-    private lateinit var userRepository: UserRepository
-
-    @Test
-    fun `findByIdAndStatus 로 ACTIVE 상태인 유저를 조회한다`() {
-        val result = userRepository.findByIdAndStatus(1L, UserStatus.ACTIVE)
-        assertThat(result.isPresent).isTrue()
-    }
-}
-```
-
-- **`@DataJpaTest`** — JPA 관련 빈만 띄웁니다. 전체 컨텍스트의 일부분만 로딩되어 `@SpringBootTest` 보다 훨씬 빠릅니다.
-- **`@TestPropertySource`** — 테스트 전용 `application.properties` 를 지정합니다. 운영 설정을 건드리지 않기 위함입니다.
-- **`@Sql`** — fixture 데이터를 SQL 파일로 미리 주입합니다. 클래스 단위·메서드 단위로 부착할 수 있습니다.
-
-기본 동작 중 한 가지는 의식해 둘 만합니다. `@DataJpaTest` 는 **각 테스트가 끝나면 트랜잭션을 롤백** 합니다. 테스트 간 격리는 자동으로 보장되지만, "테스트가 끝나면 데이터가 남지 않는다" 는 점을 fixture 설계에 반영해야 합니다.
-
-### 운영 DB 와 테스트 DB
-
-원본 노트에는 `H2` 가 자주 등장했습니다만, 5-6년차 시각으로 한 가지 보태자면 **운영 DB 와 다른 DB 로 테스트를 돌리는 결정은 점점 줄어드는 추세** 입니다.
-
-| 옵션                                | 장점                   | 단점                            |
-| ----------------------------------- | ---------------------- | ------------------------------- |
-| **H2 (in-memory)**                  | 빠름, 외부 의존 없음   | 운영(MySQL/PG) 과 SQL 방언 차이 |
-| **Testcontainers + 운영과 같은 DB** | 운영과 동일한 SQL 동작 | 컨테이너 부팅 비용, Docker 필요 |
-| **공용 테스트 DB**                  | 운영 동일 환경         | 동시성 충돌, 격리 어려움        |
-
-규모가 작거나 SQL 이 표준에 가깝다면 H2 도 합리적입니다. 그러나 JSON 컬럼·윈도우 함수·DB 별 락 동작이 검증 대상에 들어오는 순간 H2 는 거짓 안전감을 줍니다. 저는 운영의 MySQL 락 동작과 H2 의 결과가 달라 production 에서만 데드락이 잡힌 적이 있습니다. 그 비용을 한 번 치르고 나서야 Testcontainers 로 옮겼습니다. 그 결정이 한 분기 늦었습니다.
-
-### 함정 — Repository 만 테스트하다 Service 를 잊는다
-
-Repository 테스트가 늘면 한 가지 함정이 따라옵니다. **"쿼리가 통과했으니 Service 도 잘 동작할 것" 이라는 착각** 입니다. Repository 가 돌려준 결과를 Service 가 어떻게 조합·검증하는지는 별개 영역이며, 다음 절의 주제입니다.
-
-## Service 테스트
-
-### 두 갈래의 결정
-
-Service 테스트는 보통 두 갈래로 나뉩니다.
-
-- **단위 테스트** — Repository · 외부 클라이언트를 **Fake/Mock** 으로 치환하고 도메인 로직만 검증합니다.
-- **통합 테스트** — `@SpringBootTest` 또는 슬라이스로 진짜 빈을 띄워 협력자 간 흐름까지 검증합니다.
-
-5-6년차 시각의 권장은 **단위 테스트가 주력, 통합 테스트는 핵심 시나리오 한정** 입니다. 협력자가 5~6개로 늘어 단위 테스트가 짜기 어려워지면, 답은 더 정교한 mock 사용이 아니라 SUT 의 책임을 쪼개는 일입니다. Service 테스트의 첫 번째 관문이 여기에 있습니다.
-
-### 외부 의존성을 다루는 방식
-
-원본 노트에 등장했던 패턴 — `@SpringBootTest` + `@MockBean` 으로 `JavaMailSender` 를 치환 — 을 그대로 가져와 비교합니다.
-
-**Before — `@MockBean` 으로 외부 의존성 치환**
-
-```kotlin
-@SpringBootTest
-class UserServiceTest {
-
-    @Autowired
-    private lateinit var userService: UserService
-
-    @MockBean
-    private lateinit var javaMailSender: JavaMailSender
-
-    @Test
-    fun `사용자 생성 시 이메일 인증 코드가 전송된다`() {
-        userService.create(CreateUserRequest(...))
-        verify(javaMailSender).send(any<MimeMessage>())
-    }
-}
-```
-
-- 전체 컨텍스트를 띄웁니다. 한 테스트당 부팅 비용이 큽니다.
-- `JavaMailSender` 를 빈으로 치환하므로 `UserService` 가 **`JavaMailSender` 라는 구체 타입을 그대로 알고 있는 상태** 입니다.
-
-**After — 인터페이스 + Fake 로 단위 테스트**
-
-```kotlin
-// 도메인 인터페이스
-interface MailGateway {
-    fun send(to: Email, content: MailContent)
-}
-
-// 테스트용 Fake
-class FakeMailGateway : MailGateway {
-    val sent: MutableList<Pair<Email, MailContent>> = mutableListOf()
-    override fun send(to: Email, content: MailContent) { sent += to to content }
-}
-
-class UserServiceTest {
-
-    @Test
-    fun `사용자 생성 시 이메일 인증 코드가 전송된다`() {
-        // given
-        val mailGateway = FakeMailGateway()
-        val sut = UserService(
-            userRepository = FakeUserRepository(),
-            mailGateway = mailGateway,
-            codeGenerator = FixedCodeGenerator("ABCD"),
-        )
-
-        // when
-        sut.create(CreateUserRequest(email = Email("test@example.com")))
-
-        // then
-        assertThat(mailGateway.sent).hasSize(1)
-        assertThat(mailGateway.sent.first().second.text).contains("ABCD")
-    }
-}
-```
-
-- Spring 컨텍스트 부팅이 없습니다. 실행 속도는 **밀리초 단위** 입니다.
-- 검증이 행위(`verify`) 가 아니라 상태(`sent` 목록) 로 이루어집니다. [개념, 대역](/posts/test-doubles-concept) 에서 정리한 **상태 검증 우선** 원칙 그대로입니다.
-- `FakeMailGateway` 는 `MailGateway` 의 진짜 인스턴스이므로, 호출되었는지·어떤 내용으로 호출되었는지를 모두 검증할 수 있습니다.
-
-### 테스트가 못 짜진다면, 설계를 먼저 본다
-
-원본 노트의 두 가지 사례를 다시 가져옵니다. 둘 다 "테스트 도구를 더 정교하게 쓴다고 풀리지 않는" 종류입니다.
-
-**사례 1 — UUID 로 생성된 인증 코드를 검증할 길이 없다.**
-
-```kotlin
-class UserService(...) {
-    fun create(request: CreateUserRequest) {
-        val code = UUID.randomUUID().toString()  // 매번 다른 값
-        mailGateway.send(request.email, MailContent("코드: $code"))
-    }
-}
-```
-
-- 테스트가 `code` 의 값을 알 길이 없으므로, "메일이 보내졌다" 정도까지만 검증됩니다.
-- [의존성과 Testability](/posts/dependency-and-testability) 에서 다룬 **숨겨진 의존성** 의 전형입니다.
-- 해법은 `CodeGenerator` 를 인터페이스로 외부화하고, 테스트에서는 `FixedCodeGenerator` 를 주입하는 것입니다.
-
-**사례 2 — `Clock.systemUTC()` 로 찍은 timestamp 를 비교할 길이 없다.**
-
-```kotlin
-class CertificationCode(...) {
-    val createdAt: LocalDateTime = LocalDateTime.now(Clock.systemUTC())
-}
-```
-
-- `createdAt` 이 매 실행마다 다릅니다. assertion 으로 박을 값이 없습니다.
-- 같은 종류의 문제이며, 해법도 같습니다 — `Clock` 을 외부에서 주입.
-
-테스트가 못 짜진다고 느낀 순간을 돌이켜보면, 거의 항상 SUT 의 의존성 모양이 잘못되어 있었습니다. 단위 테스트가 어렵다는 것은 코드를 더 분리하라는 청구서입니다.
-
-### 함정 — 모든 협력자를 `@MockBean` 으로
-
-`@MockBean` 은 강력합니다. 강력해서 위험합니다. **모든 협력자를 `@MockBean` 으로 둘러싸기 시작하면** 테스트는 SUT 의 내부 호출 시퀀스를 베껴 적은 사본이 됩니다. 한 번 들이면 리팩토링 한 번에 테스트 수십 개가 한꺼번에 깨집니다. 저는 그 사고를 한 번 친 적이 있습니다. 권장 결은 다음과 같습니다.
-
-- **도메인 협력자** — Fake 로 치환합니다 (`FakeUserRepository`, `FakeMailGateway`).
-- **외부 시스템 자체의 응답** — Stub/Mock 으로 흉내냅니다 (외부 API 의 HTTP 응답 등).
-
-이 분리는 게이트웨이 인터페이스 분리와 한 결이며, [외부 연동을 다루는 방법](/posts/handling-external-integrations) 에서 같은 결로 적용합니다.
-
-## Controller 테스트
-
-### MockMvc — HTTP 를 흉내내는 도구
-
-> `MockMvc` 는 서버를 띄우지 않고 **HTTP 요청/응답 흐름을 메모리에서 흉내내는** 도구입니다.
-
-핵심은 "진짜 HTTP 가 아니지만, Spring MVC 의 거의 모든 처리(필터·인터셉터·예외 처리·검증) 가 그대로 동작" 한다는 점입니다.
-
-```kotlin
-@SpringBootTest
-@AutoConfigureMockMvc
-class UserControllerTest {
-
-    @Autowired
-    private lateinit var mockMvc: MockMvc
-
-    @Test
-    fun `특정 유저 조회 시 개인정보가 소거되어 반환된다`() {
-        mockMvc.perform(get("/api/users/1"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.email").value("k***@naver.com"))
-    }
-}
-```
-
-- `mockMvc.perform(...)` 으로 HTTP 메서드·경로·헤더·바디를 흉내냅니다.
-- `andExpect(...)` 로 상태 코드·헤더·바디(`jsonPath` 또는 `content`) 를 검증합니다.
-
-### `@WebMvcTest` vs `@SpringBootTest + @AutoConfigureMockMvc`
-
-자주 헷갈리는 두 슬라이스를 비교합니다.
-
-| 항목                  | `@WebMvcTest`                             | `@SpringBootTest + @AutoConfigureMockMvc` |
-| --------------------- | ----------------------------------------- | ----------------------------------------- |
-| 띄우는 범위           | MVC 레이어만                              | 전체 컨텍스트                             |
-| Service·Repository 빈 | **포함되지 않음** (별도 `@MockBean` 필요) | 모두 포함                                 |
-| 속도                  | 빠름                                      | 느림                                      |
-| 주 용도               | Controller 단위 테스트                    | Controller 통합 테스트                    |
-| Spring Security 적용  | 컨트롤러 슬라이스만 적용                  | 운영과 동일하게 적용                      |
-
-**`@WebMvcTest` 가 적합한 자리**
-
-```kotlin
-@WebMvcTest(controllers = [UserController::class])
-class UserControllerSliceTest {
-
-    @Autowired
-    private lateinit var mockMvc: MockMvc
-
-    @MockBean
-    private lateinit var userService: UserService
-
-    @Test
-    fun `존재하지 않는 유저 조회 시 404`() {
-        whenever(userService.findById(any())).thenReturn(null)
-
-        mockMvc.perform(get("/api/users/999"))
-            .andExpect(status().isNotFound)
-    }
-}
-```
-
-- Service 빈은 컨텍스트에 없으므로 `@MockBean` 으로 주입합니다.
-- **Controller 자체의 책임** — 경로 매핑, 요청 검증, 응답 직렬화, 예외 처리 — 만 검증합니다.
-
-**`@SpringBootTest + @AutoConfigureMockMvc` 가 적합한 자리**
-
-- E2E 에 가까운 시나리오를 한 번에 묶어 검증할 때
-- Security 설정·CORS·Filter 의 운영 동작까지 확인이 필요할 때
-- 핵심 비즈니스 플로우의 회귀 방지 (개수는 최소화)
-
-### 함정 — Controller 가 너무 많은 일을 한다
-
-Controller 테스트를 짜다 한 가지 상황이 반복되면 의심해야 합니다. **"이 Controller 메서드를 테스트하려고 보니, 요청 변환·도메인 로직·응답 변환이 모두 들어가 있다."** 이 경우 답은 더 정교한 MockMvc 사용법이 아니라, Controller 의 책임을 Service 로 넘기는 일입니다. Controller 는 **HTTP <-> Application 계층의 변환기** 에 가까울 때 가장 테스트하기 쉽습니다.
-
-## 한눈에 — 레이어별 권장 매트릭스
-
-| 레이어         | 1순위 도구               | 2순위 도구                  | 검증 초점             | 흔한 함정               |
-| -------------- | ------------------------ | --------------------------- | --------------------- | ----------------------- |
-| **Repository** | `@DataJpaTest` + 진짜 DB | Testcontainers              | 쿼리 결과·매핑        | H2/운영 DB 방언 차이    |
-| **Service**    | 단위 테스트 + Fake       | `@SpringBootTest`           | 도메인 로직·상태 변화 | 모든 협력자 `@MockBean` |
-| **Controller** | `@WebMvcTest` + MockMvc  | `@SpringBootTest` + MockMvc | HTTP 변환·예외 처리   | 비즈니스 로직 침투      |
-
-이 표는 절대 규칙이 아니라 출발점입니다. 프로젝트의 **외부 의존성 수, 도메인 복잡도, 팀 인원, CI 시간 예산** 에 따라 결이 달라집니다.
-
-## 운영 관점 — CI 에서의 테스트 분할
-
-5-6년차 시각으로 한 가지만 보태자면, 레이어별 테스트를 잘 짜는 것만큼이나 **CI 에서 어떻게 돌리느냐** 가 중요합니다.
-
-- **단위 테스트 (Service · 도메인)** — PR 단위로 매번. 수 초 ~ 수십 초 안에 끝나야 PR 흐름이 막히지 않습니다.
-- **슬라이스 통합 테스트 (`@DataJpaTest`, `@WebMvcTest`)** — PR 단위로. 보통 수십 초 ~ 수 분.
-- **풀 `@SpringBootTest`** — main 머지·nightly 로 분리. 핵심 시나리오만.
-
-이 분할이 안 되어 있으면 PR 한 번에 5~10분씩 기다리게 되고, 결국 테스트를 안 짜는 쪽으로 흘러갑니다. CI 가 빠르게 빨강·초록을 돌려주는 것은 도구의 문제처럼 보이지만, 실은 테스트 설계 그 자체의 문제입니다.
-
-## 회고 — 레이어별 도구 선택에서 두 번 잘못한 것
-
-레이어 테스트를 정렬해 가면서 두 번 후회한 결정이 있습니다.
-
-1. **신규 프로젝트에 `@SpringBootTest` 를 기본으로 깔았던 것.** 처음에는 편했습니다. 6개월쯤 지나 PR CI 가 5분을 넘기 시작했고, 그때는 이미 모든 테스트가 전체 컨텍스트를 끌고 있어 슬라이스로 옮길 자리가 없었습니다.
-2. **H2 의 거짓 안전감을 너무 늦게 의심한 것.** 운영 MySQL 의 락 동작과 다르게 통과하던 테스트들이 production 에서 데드락을 만들었습니다. Testcontainers 로 옮긴 결정이 한 분기 늦었습니다.
-
-운이 좋았던 부분도 있습니다. 두 사고 모두 회복 가능한 수준에서 그쳤습니다. 처음부터 권장 도구를 선택했더라면 거의 모든 비용을 피할 수 있었습니다.
-
-레이어별 테스트의 첫 단추는 단순합니다. **필요한 만큼만 컨텍스트를 띄웁니다.** `@DataJpaTest`, `@WebMvcTest`, 슬라이스 없음을 의식적으로 골라 쓰는 습관이, 6개월 뒤 CI 5분 벽에 부딪히지 않는 가장 단순한 길입니다.
+CI에서는 빠른 규칙 테스트와 필요한 통합 검증을 묶되, 중요한 회귀가 머지 전에 발견되도록 배치합니다. 느리다는 이유만으로 핵심 통합 시나리오를 전부 야간으로 미루기보다 준비 비용과 실제 검증 시간을 먼저 분리해 봅니다.

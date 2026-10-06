@@ -1,86 +1,40 @@
 ---
 author: "luca"
 pubDatetime: 2023-05-18T13:33:27+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 title: "JPA 장점"
 slug: "why-jpa"
 featured: false
 draft: false
-tags: ["jpa", "orm", "introduction"]
+tags: ["학습노트", "jpa", "orm", "introduction"]
 description: "CRUD 생산성, 유지보수, 객체-관계 패러다임 불일치 해결, 1차 캐시·쓰기 지연 등 JPA 의 장점을 정리한 학습 노트입니다."
 ---
 
-> 김영한님의 JPA 로드맵을 따라 학습하면서 정리한 노트입니다.
-
-## 생산성 — JPA 와 CRUD
-
-- **저장**: `jpa.persist(member)`
-- **조회**: `Member member = jpa.find(memberId)`
-- **수정**: `member.setName("변경할 이름")`
-- **삭제**: `jpa.remove(member)`
-
-## 유지보수
-
-- **기존**: 필드가 변경되면 모든 SQL을 수정해야 했습니다.
-- **JPA**: 필드만 추가하면 됩니다 (JPA가 SQL을 생성해 주기 때문입니다).
-
-## JPA와 패러다임 불일치 해결
-
-### 1. JPA와 상속
-
-- 상속관계일 경우 (DB에서는 슈퍼타입 테이블과 서브타입 테이블 관계일 경우)
-  - 저장할 때, 관계 맺은 테이블들에 모두 `INSERT`를 해야 하지만 JPA를 사용하면 `jpa.persist(객체)`만 호출하면 나머지 SQL은 JPA가 알아서 처리합니다.
-  - 조회할 때, 관계를 맺은 테이블들을 `JOIN`해서 SQL문을 작성해야 하지만 `jpa.find(객체.class, id)`만 호출하면 나머지 SQL을 JPA가 알아서 처리합니다.
-
-### 2. JPA와 연관관계
-
-연관관계를 저장할 때는 `member.setTeam(team)`, `jpa.persist(member)`와 같이 저장할 수 있습니다.
-
-### 3. JPA와 객체 그래프 탐색
+JPA를 사용하면 엔티티의 저장·조회·변경을 객체 중심으로 표현할 수 있습니다. 이 노트는 김영한님의 JPA 로드맵을 학습하며 정리한 개념을 바탕으로, 편리한 기능과 그 기능이 적용되는 조건을 나눠 설명합니다.
 
 ```java
-Member member = jpa.find(Member.class, memberId);
-Team team = member.getTeam();
+em.persist(member);
+Member found = em.find(Member.class, memberId);
+found.setName("변경할 이름");
+em.remove(found);
 ```
 
-객체 참조를 따라 그래프를 탐색할 수 있습니다.
+위 코드는 하나의 사용 흐름을 실행한 결과가 아니라 각 연산의 형태입니다. managed 엔티티의 변경은 flush 때 SQL로 동기화될 수 있습니다. 매핑을 통해 반복 SQL을 줄이지만, 스키마 마이그레이션과 커스텀 쿼리까지 필드 추가만으로 해결되는 것은 아닙니다.
 
-### 4. JPA와 비교하기
+## 같은 객체를 관리하는 범위
 
-동일한 트랜잭션에서 조회한 엔티티는 같음을 보장받습니다.
+같은 영속성 컨텍스트에서 같은 식별자의 엔티티를 조회하면 같은 managed 인스턴스를 받습니다. 이미 관리 중인 객체를 `find`로 조회할 때 DB 접근을 줄일 수 있습니다.
 
-```java
-String memberId = "100";
-Member member1 = jpa.find(Member.class, memberId);
-Member member2 = jpa.find(Member.class, memberId);
+이 기능을 DB의 `REPEATABLE READ` 격리 수준과 동일하게 볼 수는 없습니다. JPQL의 검색 결과, 새로운 행, 스칼라 조회까지 모두 같은 스냅샷으로 고정하는 것이 아니기 때문입니다. 자세한 내용은 [영속성 컨텍스트](/posts/jpa-persistence-context/)에서 다룹니다.
 
-member1 == member2 // 같다
-```
+## 쓰기 지연과 JDBC 배치는 다르다
 
-### 5. JPA의 성능 최적화 기능
+JPA는 변경 SQL을 flush까지 미룰 수 있지만 모든 INSERT가 커밋 시점까지 대기하지는 않습니다. IDENTITY 생성 전략에서는 ID를 얻기 위해 이른 INSERT가 필요할 수 있습니다. 명시적 flush나 쿼리 전 자동 flush도 있습니다.
 
-#### 1차 캐시와 동일성 보장
+여러 SQL이 실제 JDBC 배치로 전송되는지는 Hibernate의 batch 설정, ID 전략, 드라이버 등 추가 조건에 달려 있습니다. 엔티티를 여러 번 `persist`했다는 사실만으로 배치가 적용됐다고 판단하지 않습니다.
 
-- 같은 트랜잭션 안에서는 같은 엔티티를 반환합니다 — 위 조회에서 SQL은 1번만 실행됩니다.
-- DB Isolation Level이 `Read Committed`여도 애플리케이션 레벨에서 `Repeatable Read`를 보장합니다.
+## 객체 탐색에도 조회 비용이 있다
 
-#### 트랜잭션을 지원하는 쓰기 지연 — INSERT
+`member.getTeam()`처럼 관계를 탐색할 수 있지만 접근 시 추가 SQL이 발생할 수 있습니다. `EAGER`는 연관 데이터를 즉시 준비하라는 요구이며, 언제나 JOIN 한 번으로 읽으라는 뜻은 아닙니다. 필요한 화면의 조회 경로에서 fetch join·DTO 조회·batch fetch를 선택하고 실제 SQL을 확인합니다.
 
-- 트랜잭션을 커밋할 때까지 `INSERT SQL`을 모읍니다.
-- JDBC BATCH SQL 기능을 사용해서 한 번에 SQL을 전송합니다.
-
-```java
-transaction.begin(); // [트랜잭션] 시작
-
-em.persist(memberA);
-em.persist(memberB);
-em.persist(memberC);
-// 여기까지 INSERT SQL을 데이터베이스에 보내지 않는다.
-
-// 커밋하는 순간 데이터베이스에 INSERT SQL을 모아서 한번에 보낸다.
-transaction.commit(); // [트랜잭션] 커밋
-```
-
-#### 지연 로딩과 즉시 로딩
-
-- **지연 로딩**: 객체가 실제 사용될 때 로딩합니다.
-- **즉시 로딩**: `JOIN SQL`로 한 번에 연관된 객체까지 미리 조회합니다.
+JPA의 이점은 SQL을 몰라도 된다는 데 있지 않습니다. 반복적인 저장 코드를 줄인 뒤, 중요한 조회에 어떤 SQL이 나가는지 더 집중해서 볼 수 있다는 데 있습니다.

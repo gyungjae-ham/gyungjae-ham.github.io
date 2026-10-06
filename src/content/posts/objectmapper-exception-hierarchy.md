@@ -1,10 +1,11 @@
 ---
 author: "luca"
-title: "ObjectMapper 의 예외 계층을 잘못 잡고 있었다 — JsonProcessingException 과 JsonMappingException 의 진짜 관계"
-description: "JsonProcessingException 과 JsonMappingException 을 따로 catch 했는데 후자는 닿지도 않는 코드였습니다. 예외 계층을 정확히 보지 않은 채로 catch 를 늘리던 습관을 정리하고, Wrapper 패턴으로 정돈합니다."
+title: "Jackson 예외를 나눠 잡기 전에 확인할 계층과 책임"
+description: "DatabindException의 버전과 catch 순서를 바로잡고, 입력 오류·I/O 실패·서버 직렬화 오류를 어떤 기준으로 나눌지 설명합니다."
 slug: "objectmapper-exception-hierarchy"
 tags:
   [
+    "학습노트",
     "spring",
     "objectmapper",
     "jackson",
@@ -13,107 +14,37 @@ tags:
     "kotlin",
   ]
 pubDatetime: 2024-12-25T12:13:00+09:00
-modDatetime: 2026-05-23T00:00:00+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 featured: false
 draft: false
 ---
 
-> 이 글은 ObjectMapper 시리즈 3편 중 2편 입니다. 1편은 ObjectMapper 가 Spring MVC 의 어느 자리에 살고 있는지를 다뤘습니다 (slug: objectmapper-where-in-spring-mvc).
+Jackson에서 JSON 문법 오류와 객체 매핑 오류를 다르게 처리하려면 예외 계층부터 확인해야 합니다. `JsonMappingException`보다 부모인 `JsonProcessingException`을 먼저 catch하면 매핑 오류도 앞에서 잡힙니다. Java에서는 뒤 catch가 도달 불가능한 코드로 컴파일 오류가 됩니다.
 
-그때는 `JsonMappingException` 을 별도 catch 로 잡고 있었지만 그건 `JsonProcessingException` 의 자식이라 닿지도 않는 코드였습니다. 예외 계층을 정확히 보지 않은 채로 catch 를 늘리는 것이 가장 위험합니다. 다음 코드가 그때 그대로의 모양입니다.
+[Spring MVC의 변환 경로](/posts/objectmapper-where-in-spring-mvc/)에 이어, 여기서는 Jackson 2.x를 직접 사용하는 경우를 다룹니다.
 
-```kotlin
-try {
-    objectMapper.readValue(request, A::class.java)
-} catch (e: JsonProcessingException) {
-    throw CoreException(ExceptionCode.FAILED_PARSE_JSON)
-} catch (e: JsonMappingException) {
-    throw CoreException(ExceptionCode.FAILED_MAP_TO_SCHEMA)
-}
+## 같은 계층이어도 처리 이유는 다를 수 있다
+
+Jackson **2.13부터** `DatabindException`이 추가됐으며 계층은 다음과 같습니다. [DatabindException 2.13 API](https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/DatabindException.html)
+
+```text
+JsonProcessingException
+  └─ DatabindException
+       └─ JsonMappingException
 ```
 
-부모 catch 가 먼저 걸리면 자식 catch 는 영원히 도달하지 않습니다. Java/Kotlin 의 catch 순서 규칙이고, 알면서도 이렇게 작성한 이유는 단순했습니다. 라이브러리 예외 계층을 직접 확인하지 않은 채로 "그래도 두 개 다 잡아 두면 안전하지 않을까" 라고 생각한 결이었습니다. 그 자리에서 한 번만 더 들여다봤어도 두 줄짜리 catch 가 사실은 한 줄이라는 사실이 보였을 것입니다.
+두 종류를 같은 오류로 처리할 계약이라면 부모 하나를 잡을 수 있습니다. 반대로 문법 오류와 타입·필드 매핑 오류의 처리 방법이 다르면 자식을 먼저 catch하는 것이 타당합니다. catch의 개수가 설계 품질을 결정하지는 않습니다.
 
-## JsonProcessingException 의 정체부터
+InputStream이나 파일에서 읽을 때의 일반 I/O 오류까지 모두 `JsonProcessingException`인 것은 아닙니다. 사용하는 `readValue` 오버로드와 입력 매체에 따라 `IOException`의 범위를 함께 봐야 합니다.
 
-`JsonProcessingException` 은 Jackson 라이브러리가 JSON 을 처리할 때 발생하는 가장 기본적인 부모 예외 입니다. 어떤 상황에서 튀어 나오는지 정리하면 다음과 같습니다.
+## HTTP 상태 코드는 발생 맥락으로 정한다
 
-- JSON 문법이 잘못된 경우 (괄호 누락, 콤마 위치 오류 등)
-- JSON 문자열이 중간에 끊긴 경우
-- 입출력 작업 중 에러가 발생한 경우
+클라이언트가 보낸 JSON의 형식이 잘못됐다면 400 응답으로 처리할 수 있습니다. 그러나 서버의 응답 객체 직렬화가 실패하거나, 서버에 저장한 JSON과 현재 모델이 맞지 않는 문제까지 클라이언트 탓으로 돌리면 안 됩니다.
 
-이 예외가 발생하는 영역은 대부분 **클라이언트가 보낸 데이터의 문제** 입니다. 개발자가 코드 레벨에서 사전에 제어할 수 있는 자리가 아니라, 사용자 측 휴먼 에러나 네트워크 사건에 가깝습니다. 그래서 이 예외를 완전히 제거하는 일은 불가능하고, 결국 "무엇을 어디서 catch 하느냐" 의 문제로 좁혀집니다.
+예를 들어 요청에 `age: "abc"`가 온 경우와 서버 코드의 날짜 직렬화 설정이 빠진 경우는 같은 변환 실패여도 책임이 다릅니다. 로그에는 원인을 추적할 정보를 남기되 요청 원문이나 예외 메시지의 민감한 값을 그대로 응답하지 않습니다.
 
-## JsonMappingException 은 자식이었습니다
+## 관대한 설정도 API 계약이다
 
-`JsonMappingException` 은 Jackson 2.10 부터 `DatabindException` 을 상속하고, `DatabindException` 은 다시 `JsonProcessingException` 을 상속합니다. 계층은 다음과 같이 박혀 있습니다.
+`FAIL_ON_UNKNOWN_PROPERTIES`를 끄면 알 수 없는 필드를 허용합니다. `ACCEPT_SINGLE_VALUE_AS_ARRAY`는 배열 자리에 단일 값을 받게 합니다. 이런 선택은 입력 계약을 넓히는 것이므로 예외를 줄이기 위해 일괄 적용하지 않습니다.
 
-- `JsonProcessingException`
-  - `DatabindException`
-    - `JsonMappingException`
-
-그러니까 위의 코드는 두 줄짜리 catch 가 아니라 사실상 한 줄짜리 catch 였습니다. 부모를 먼저 잡으면서 자식 catch 를 무력화하고 있었던 셈입니다. 자식만 따로 잡고 싶었다면 자식을 먼저 써야 했고, 다만 그렇게 분기를 늘리는 게 정말로 의미가 있는지부터 묻는 편이 낫습니다. 매핑 실패와 파싱 실패를 굳이 다른 에러 코드로 분기시킬 필요가 운영에서 실제로 있었는가를 되묻는 자리입니다. 대부분의 답은 "없다" 입니다.
-
-## ObjectMapper 의 핵심 설정 옵션
-
-try-catch 로 예외를 처리하는 대신, ObjectMapper 의 설정으로 예외 발생 자체를 줄일 수 있는 자리가 있습니다. 카테고리별 옵션을 전부 나열할 수도 있지만, 실무에서 가장 자주 쓰는 다섯 개로 좁히면 다음과 같습니다.
-
-| 옵션                                                         | 효과                                     | 언제 켜는가                                         |
-| ------------------------------------------------------------ | ---------------------------------------- | --------------------------------------------------- |
-| `DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES = false`  | 알 수 없는 필드를 무시                   | 클라이언트가 잉여 필드를 자주 보낼 때               |
-| `SerializationFeature.WRITE_DATES_AS_TIMESTAMPS = false`     | 날짜를 ISO-8601 로 직렬화                | 프론트와 시간 포맷을 맞출 때                        |
-| `JavaTimeModule()` 등록                                      | `LocalDateTime` 등 Java 8 시간 타입 지원 | Kotlin/Java 17 환경의 기본 세팅                     |
-| `PropertyNamingStrategies.SNAKE_CASE`                        | snake_case 와 camelCase 자동 변환        | 외부 API 명명 규칙과 다를 때                        |
-| `DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY = true` | 단일 값을 배열로 받기                    | 일부 클라이언트가 길이 1 배열을 단일 값으로 보낼 때 |
-
-이 다섯 가지만 잘 설정해 두어도 매핑 단계에서 던져지는 예외의 대부분이 사라집니다. 설정으로 막을 수 있는 예외를 catch 로 막는 일이 잦았다는 게 자기 개정의 핵심입니다. catch 줄을 늘리는 자리에서 한 번 더 묻게 됩니다. "이 catch 는 정말 잡아야 하는 예외인가, 아니면 설정 한 줄로 사라질 예외인가."
-
-## Wrapper 로 정돈하기
-
-설정으로 막을 수 없는 영역, 즉 진짜로 JSON 자체가 깨진 경우는 결국 try-catch 가 필요합니다. 다만 그 try-catch 가 **호출 지점마다 흩어지는 것** 이 문제이지, try-catch 자체가 문제는 아닙니다. 한 군데로 모으면 됩니다. `JsonConverter` 같은 Wrapper 컴포넌트가 그 자리입니다.
-
-```kotlin
-@Component
-class JsonConverter(private val objectMapper: ObjectMapper) {
-
-    fun <T : Any> fromJson(json: String, type: Class<T>): Optional<T> =
-        try {
-            Optional.ofNullable(objectMapper.readValue(json, type))
-        } catch (e: JsonProcessingException) {
-            log.error("JSON 변환 실패: {}", e.message)
-            Optional.empty()
-        }
-
-    fun toJson(value: Any): Optional<String> =
-        try {
-            Optional.ofNullable(objectMapper.writeValueAsString(value))
-        } catch (e: JsonProcessingException) {
-            log.error("JSON 변환 실패: {}", e.message)
-            Optional.empty()
-        }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(JsonConverter::class.java)
-    }
-}
-```
-
-- **`Optional<T>` 반환**: 호출부가 `orElseThrow()` 또는 `orElseGet()` 으로 분기를 명시하도록 강제합니다.
-- **`JsonProcessingException` 한 줄**: 자식 예외까지 한 번에 받습니다. 더 늘릴 이유가 없습니다.
-- **로그 일관성**: 어디서 변환에 실패했든 한 위치에서 로깅됩니다.
-
-호출부는 책임을 명시하는 모양이 됩니다. 두 줄짜리 try-catch 가 흩어지지 않고, 변환의 책임이 한 컴포넌트 안에 모입니다.
-
-```kotlin
-fun processUser(jsonData: String): User =
-    jsonConverter.fromJson(jsonData, User::class.java)
-        .orElseThrow { BusinessException("유효하지 않은 JSON 데이터") }
-```
-
-그 자리에서 한 발 더 나가면, `@RestControllerAdvice` 와 결합해 `JsonProcessingException` 또는 `BusinessException` 을 일관된 에러 응답으로 변환할 수 있습니다. Wrapper 가 호출부 책임을 명시하게 하고, `ControllerAdvice` 가 최종 응답 형식을 책임지는 결입니다. 두 자리가 분리되어 있어야 catch 가 다시 흩어지지 않습니다.
-
-## 정리
-
-예외 catch 가 두 줄 이상 늘어났다면, 그건 예외 계층을 다시 봐야 한다는 신호 입니다. 두 예외가 부모-자식이라면 자식 catch 는 닿지 않고, 둘이 형제라면 분기 자체가 의미를 가지는지 다시 묻게 됩니다. 대부분의 경우 답은 "부모 하나로 충분하다" 이고, 그 부모 하나도 Wrapper 한 군데로 모으면 호출부에서 사라집니다. 결국 catch 줄을 늘리기 전에 예외의 부모를 먼저 보는 일이 가장 빠른 정리입니다.
-
-다음 글에서는 같은 `MappingJackson2HttpMessageConverter` 가 클라이언트 사이드에서 일으킨 사이드 이펙트 — RestClient 의 청크 전송 사건을 정리합니다 (slug: restclient-chunked-transfer).
+반복 호출을 wrapper로 모을 때도 실패를 모두 `Optional.empty()`로 바꾸면 유효한 JSON `null`과 파싱 실패를 구별하기 어려워집니다. 호출자가 복구해야 하는 이유를 예외나 명시적인 결과 타입으로 보존할지 정해야 합니다. 본문 형식과 전송 방식의 차이는 [RestClient 사례](/posts/restclient-chunked-transfer/)에서 이어집니다.

@@ -1,53 +1,25 @@
 ---
 author: "luca"
 pubDatetime: 2023-08-16T17:49:19+09:00
-title: "JPA 성능 최적화 — batch_fetch_size 와 OSIV 의 진짜 의미"
+modDatetime: 2026-10-06T18:18:44+09:00
+title: "JPA 성능을 볼 때 batch fetch와 OSIV를 구분하는 이유"
 slug: "jpa-performance-tuning"
 featured: false
 draft: false
-tags: ["jpa", "performance", "n+1", "fetch-join", "batch-size", "osiv"]
-description: "default_batch_fetch_size 와 OSIV 설정이 N+1 과 커넥션 풀에 미치는 영향을, 5-6년차 운영 시각으로 다시 정리."
+tags:
+  ["학습노트", "jpa", "performance", "n+1", "fetch-join", "batch-size", "osiv"]
+description: "연관 로딩의 쿼리 수와 데이터 양을 살펴보고, batch fetch·페이징·OSIV가 각각 바꾸는 범위를 구분합니다. 세션 수명과 JDBC 연결 점유도 따로 봅니다."
 ---
 
-> **TL;DR.** `default_batch_fetch_size` 는 쿼리 수 폭발 (N+1) 을, `OSIV = false` 는 커넥션 풀 점유를 푸는 한 줄 설정입니다. 다만 한 줄로 보이는 자리에 운영 trade-off 가 다 들어 있습니다. 두 옵션의 진짜 비용과 옮길 때의 비용을 정리합니다.
+주문 목록에서 주문별 항목을 차례로 읽으면, 목록 조회 한 번 뒤에 항목 조회가 주문 수만큼 반복될 수 있습니다. JPA 성능을 볼 때는 어떤 엔티티를 반환했는지뿐 아니라 응답을 만드는 동안 접근한 연관관계까지 확인해야 합니다.
 
-> 2023-08 에 velog 에 정리한 글을 5-6년차 백엔드 시각으로 다시 손본 글입니다. 그때는 "이렇게 설정하면 빨라진다" 정도로 적었던 두 옵션의, 운영에서 보이는 진짜 의미를 함께 적었습니다.
+이 글은 Spring Boot 3.x·Hibernate 6의 일반적인 조회 동작을 기준으로 설명합니다. 사용 중인 매핑과 버전에 따라 생성 SQL은 달라질 수 있습니다.
 
-지연 로딩이 깔린 도메인을 처음 운영에 올렸을 때, 한 화면 조회에서 쿼리가 200개씩 나가는 것을 본 적이 있습니다. APM 에서 빨갛게 표시되어 있었고, DB 의 active connection 은 평소의 5배였습니다. ORM 의 문제가 아니라 연관 로딩 전략을 잘못 잡은 자리였습니다.
+## batch fetch가 줄이는 것은 왕복 횟수다
 
-이 글은 `default_batch_fetch_size` 와 `OSIV` 두 옵션을 중심으로 풉니다. 둘 다 한 줄 설정이지만, 의미를 모르고 켜면 운영에서 다른 식으로 터집니다.
-
-## N+1 의 정체부터
-
-먼저 N+1 이 무엇인지 짧게 정리하고 갑니다.
-
-```kotlin
-// 1) 회원의 주문을 N개 조회
-val orders: List<Order> = orderRepository.findByUserId(userId)  // SELECT 1번
-
-// 2) 각 주문의 주문 항목을 출력
-for (order in orders) {
-    val items = order.orderItems  // 지연 로딩 → SELECT N번
-    log.info(items.toString())
-}
-```
-
-쿼리가 `1 + N` 번 나가서 N+1 입니다. 주문이 100건이면 쿼리는 101번. 이게 무서운 이유는 **로컬에서는 데이터 1~2건으로 테스트하기 때문에 안 보이고, 운영에서 폭발한다**는 점입니다.
-
-해결책은 크게 셋입니다.
-
-- **`fetch join`** — JPQL 에 `join fetch` 명시. 한 번의 쿼리로 join.
-- **`@EntityGraph`** — Repository 메서드에 attributePaths 선언. JPQL 안 건드림.
-- **`default_batch_fetch_size`** — 일괄 `IN` 절로 묶어 조회. 쿼리 수를 `1 + ceil(N/size)` 로 줄임.
-
-이 글에서는 세 번째에 집중합니다. 앞의 두 개는 별도 글에서 다룹니다.
-
-## default_batch_fetch_size — IN 절로 묶기
-
-설정은 한 줄입니다.
+설명용으로 주문 10개와 각 주문의 지연 로딩 항목을 생각해보겠습니다. 아무 묶음 조회가 없으면 목록 조회 이후 항목 조회가 열 번 생길 수 있습니다. batch fetch를 사용하면 같은 영속성 컨텍스트에 있는 미초기화 대상을 모아 여러 주문의 항목을 IN 조건으로 읽을 수 있습니다.
 
 ```yaml
-# application.yml
 spring:
   jpa:
     properties:
@@ -55,149 +27,33 @@ spring:
         default_batch_fetch_size: 100
 ```
 
-이 옵션을 켜면 Hibernate 가 지연 로딩 대상을 즉시 N번 조회하지 않고, **이미 로딩된 부모 엔티티의 ID 를 모아 `IN` 절로 한 번에** 가져옵니다.
-
-### Before / After
-
-**적용 전 — N+1**
-
 ```sql
-SELECT * FROM orders WHERE user_id = ?;          -- 1번
-SELECT * FROM order_item WHERE order_id = ?;     -- order 1
-SELECT * FROM order_item WHERE order_id = ?;     -- order 2
-SELECT * FROM order_item WHERE order_id = ?;     -- order 3
--- ... order 개수만큼
+SELECT * FROM orders WHERE user_id = ?;
+SELECT * FROM order_item WHERE order_id IN (?, ?, ?);
 ```
 
-**적용 후 — `IN` 묶음**
+SQL은 동작을 설명하는 축약 예시입니다. 한 종류의 컬렉션을 배치 크기만큼 모두 묶을 수 있다는 조건에서는 `1 + ceil(N / batch_size)` 형태로 생각할 수 있지만, 캐시 상태·접근 순서·다른 연관관계가 끼면 실제 횟수는 다릅니다.
 
-```sql
-SELECT * FROM orders WHERE user_id = ?;                          -- 1번
-SELECT * FROM order_item WHERE order_id IN (?, ?, ?, ..., ?);    -- 한 번에 묶음
-```
+크기를 늘리면 왕복은 줄어도 한 번에 읽는 행과 메모리가 늘어납니다. DB·드라이버·버전의 바인딩 제한과 실제 실행 계획을 확인해야 합니다. 모든 DB에 같은 IN 한도를 적용하지 않습니다.
 
-쿼리 수가 `1 + N` → `1 + ceil(N / batch_size)` 로 줄어듭니다. `batch_size = 100`, `N = 1000` 이면 `1001 → 11` 번이 됩니다.
+## fetch join과 페이징을 함께 쓸 때
 
-### batch_size 의 적정값
+컬렉션을 fetch join하면 부모 한 행이 자식 수만큼 늘어납니다. 여기에 페이지 제한을 걸면 Hibernate가 메모리에서 제한하거나 설정에 따라 실패할 수 있습니다. 부모 ID를 먼저 페이지 단위로 읽고 필요한 연관을 나중에 조회하는 방법, batch fetch, DTO 조회 등을 비교합니다.
 
-옛 글에는 "100~1000 사이를 권장" 으로만 적었는데, 실제로는 다음 기준으로 잡습니다.
+일대일 지연 로딩도 소유 방향과 optional 조건, 프록시·bytecode enhancement 지원을 함께 봐야 합니다. `LAZY`와 배치 크기만 설정했다고 모든 관계가 같은 방식으로 로딩되지는 않습니다. [Hibernate 6.6 조회 설명](https://docs.jboss.org/hibernate/orm/6.6/userguide/html_single/Hibernate_User_Guide.html#fetching)
 
-| 고려 요소           | 영향                                                      |
-| ------------------- | --------------------------------------------------------- |
-| DB 의 `IN` 절 한도  | Oracle 1000개, MySQL/PostgreSQL 은 더 큼 (실질 제약 적음) |
-| 쿼리 plan cache     | `IN` 절 파라미터 수가 자주 바뀌면 plan cache hit 률 하락  |
-| 메모리 / 응답 시간  | size 가 크면 한 쿼리가 무거워져 P99 latency 가 튐         |
-| 네트워크 round-trip | size 가 작으면 round-trip 이 늘어 전체 시간 증가          |
+## OSIV는 세션의 수명을 바꾼다
 
-실무에서는 **100 으로 시작 → 부하 테스트에서 P95/P99 보며 조정**이 정석입니다. 무작정 1000 으로 두지 않습니다.
+OSIV는 웹 요청 처리 중 영속성 컨텍스트를 열어 두어 Service의 트랜잭션 이후에도 지연 로딩이 가능하게 합니다. **영속성 컨텍스트가 열려 있는 시간과 JDBC 커넥션을 점유한 시간은 같지 않습니다.** 연결 획득·반환은 트랜잭션과 Hibernate의 connection handling 설정 등에 따라 달라집니다.
 
-### 함정 — `@OneToOne` 과 페이징
+따라서 OSIV가 켜져 있다는 이유만으로 외부 API를 기다리는 내내 연결이 반드시 유지된다고 단정하지 않습니다. 컨트롤러나 직렬화 단계에서 SQL이 추가되는지, 그 과정의 연결 점유가 얼마나 되는지 관측합니다.
 
-이 옵션이 만능은 아닙니다.
+`spring.jpa.open-in-view: false`를 선택하면 트랜잭션 안에서 응답에 필요한 데이터를 준비하기 쉬워집니다. 대신 닫힌 컨텍스트의 미초기화 연관을 나중에 접근하는 코드를 정리해야 합니다. 기존 API에서는 DTO 변환과 필요한 조회를 먼저 검증한 뒤 바꾸는 편이 안전합니다.
 
-- **`@OneToOne` 지연 로딩**은 `batch_fetch_size` 가 적용되지 않는 경우가 있습니다. nullable 한 `@OneToOne` 은 proxy 가 불가능하기 때문입니다. `optional = false` 로 명시하거나 양방향이면 mapped 쪽을 조회.
-- **페이징 + `fetch join`** 의 함정 — `OneToMany` 컬렉션을 `fetch join` 하면 결과 row 가 카르테시안 곱으로 늘어, Hibernate 가 **메모리에서 페이징** 합니다 (`HHH000104` 경고). 이때는 `fetch join` 대신 `batch_fetch_size` 가 정답입니다.
+## Kotlin 엔티티와 조회 API의 조건
 
-## OSIV — 영속성 컨텍스트의 수명을 어디까지
+Kotlin 엔티티에는 JPA용 기본 생성자와 프록시가 필요한 경우의 open 설정을 준비합니다. `kotlin-jpa`의 no-arg 지원과 all-open 설정은 역할이 다릅니다. data class의 생성된 `equals`·`hashCode`·`toString`에 연관관계가 들어가는지도 확인합니다.
 
-`OSIV (Open Session In View)` 는 Spring Boot 기본값이 `true` 입니다.
+`findById`는 이미 영속성 컨텍스트나 캐시에 있으면 SQL 없이 반환할 수 있습니다. `getReferenceById`도 언제나 새 프록시만 만들고 SELECT를 생략한다고 단정할 수는 없습니다. 실제 로딩은 접근과 구현 조건에 따라 확인합니다.
 
-```yaml
-spring:
-  jpa:
-    open-in-view: true # 기본값
-```
-
-이 한 줄이 무엇을 하는지 명확히 짚어야 합니다.
-
-### `true` 일 때 — 컨트롤러 끝까지 세션 유지
-
-- 영속성 컨텍스트가 **HTTP 응답이 클라이언트로 나가기 직전까지** 살아 있습니다.
-- 결과: 컨트롤러에서 `order.orderItems` 같이 lazy 필드를 접근해도 `LazyInitializationException` 이 나지 않습니다.
-- 비용: **DB 커넥션을 그만큼 오래 잡고 있습니다**.
-
-### `false` 일 때 — 트랜잭션 종료 시점에 세션 종료
-
-- 영속성 컨텍스트는 `@Transactional` 메서드 (보통 Service 레이어) 가 끝나는 순간 닫힙니다.
-- 결과: 컨트롤러에서 lazy 필드를 접근하면 `LazyInitializationException` 폭발.
-- 이득: **DB 커넥션을 빠르게 반환합니다**.
-
-### 어느 쪽을 골라야 하는가
-
-| 환경                            | 권장        | 이유                                     |
-| ------------------------------- | ----------- | ---------------------------------------- |
-| 학습·사이드 프로젝트            | `true`      | 편함이 가치보다 큼                       |
-| 트래픽 낮은 사내 어드민         | `true`      | 커넥션 부족 위험 거의 없음               |
-| **실시간 API 서비스**           | **`false`** | 커넥션 풀 부족이 곧 장애                 |
-| 마이크로서비스 (외부 호출 많음) | `false`     | 외부 호출 동안 커넥션을 점유하면 풀 고갈 |
-
-운영 서비스에서 `OSIV = true` 의 진짜 문제는 다음 시나리오입니다.
-
-```
-[Controller]
-  └── [Service @Transactional 종료]    ← 여기서 끝나야 할 트랜잭션
-        └── [외부 API 호출 3초]          ← 이 동안 DB 커넥션 점유 중
-              └── [View 렌더링 / JSON 직렬화]
-```
-
-`OSIV = true` 면 외부 API 호출 3초 동안 DB 커넥션 1개가 점유됩니다. 동시 요청이 100개면 풀 100개가 묶입니다. **DB 는 멀쩡한데 서비스만 다운되는 장애** 가 여기서 나옵니다.
-
-### `OSIV = false` 로 옮길 때의 비용
-
-`false` 로 바꾸면 다음 작업이 따라옵니다.
-
-- 컨트롤러에서 lazy 필드 접근 코드 모두 제거 → Service 에서 필요한 모양으로 미리 로딩.
-- DTO 변환을 Service 레이어로 옮김 → 컨트롤러는 DTO 만 받습니다.
-- N+1 이 표면화 됨 → `fetch join` · `@EntityGraph` · `batch_fetch_size` 조합 필요.
-
-이 비용을 감수해야 하므로, 신규 프로젝트라면 **처음부터 `false`** 가 정답입니다. 기존 프로젝트는 점진적으로 옮기는데, 도메인 한 개씩 entity-to-dto 변환을 끌어올리는 작업이 됩니다.
-
-## Kotlin 에서 자주 만나는 함정
-
-JPA 를 Kotlin 에서 쓸 때 같이 보이는 함정 둘만 짚습니다.
-
-### 1) `data class` 를 `@Entity` 로 쓰지 않는다
-
-```kotlin
-// 권장하지 않음
-@Entity
-data class Order(@Id val id: Long, ...)
-```
-
-- `data class` 는 `equals` / `hashCode` 를 모든 필드로 자동 생성합니다. lazy 필드가 끼면 `equals` 호출만으로 추가 쿼리가 나갑니다.
-- `final` 클래스가 기본 → JPA proxy 가 불가능. `kotlin-allopen` 플러그인이 풀어주지만, `data class` 결 자체가 entity 와 안 맞습니다.
-
-권장: `open class` + `kotlin-jpa` 플러그인.
-
-```kotlin
-@Entity
-class Order(
-    @Id @GeneratedValue val id: Long = 0,
-    val userId: Long,
-    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
-    val orderItems: MutableList<OrderItem> = mutableListOf(),
-)
-```
-
-### 2) `findById` 와 `getReferenceById` 의 차이
-
-- `findById` — 즉시 SELECT. 없으면 `Optional.empty`.
-- `getReferenceById` — proxy 만 반환. 접근 시점에 SELECT. 없으면 `EntityNotFoundException`.
-
-연관 관계 설정용 (예: `order.user = userRepository.getReferenceById(userId)`) 이라면 `getReferenceById` 가 한 번의 SELECT 를 절약합니다. 옛 글에는 안 적었지만 실무에서 자주 씁니다.
-
-## 어디서부터 손대는가
-
-성능 튜닝의 출발점을 잡는다면 다음 순서가 현실적입니다.
-
-1. **`spring.jpa.show_sql` 또는 p6spy 로 쿼리를 본다.** N+1 이 일어나는 자리가 식별되어야 시작합니다.
-2. **`default_batch_fetch_size: 100` 켠다.** 가장 적은 비용으로 대부분의 N+1 을 잡습니다.
-3. **`open-in-view: false` 로 옮길 계획을 세운다.** 신규 프로젝트면 즉시, 기존이면 도메인별 단계 적용.
-4. **부하 테스트로 P95/P99 본다.** `batch_size` 조정은 여기서.
-5. **APM (Datadog, NewRelic, Pinpoint) 으로 운영 모니터링.** 새로 추가되는 쿼리 패턴은 곧 N+1 의 후보입니다.
-
-## 정리
-
-`default_batch_fetch_size` 와 `OSIV` 는 한 줄짜리 설정이지만, 그 한 줄이 운영에서 의미하는 바는 다릅니다. 전자는 **쿼리 수**, 후자는 **커넥션 풀 점유 시간** 을 푸는 옵션이고, 푸는 대상이 다르니 한쪽만 잡고 다른 쪽을 안 보면 곧 다른 자리에서 터집니다.
-
-저는 `OSIV = true` 인 채로 외부 API 호출이 컨트롤러 단에 끼어 있던 서비스에서 DB 는 멀쩡한데 풀이 고갈되어 5xx 가 쏟아지는 장애를 경험했습니다. 그때까지 `OSIV` 가 "편한 설정" 인 줄만 알았던 게 늦은 자리였습니다. 신규 프로젝트라면 처음부터 `false` 가 옳고, 기존이라면 도메인 한 개씩 entity-to-dto 변환을 끌어올리는 작업을 잡아둬야 합니다.
+변경 전후에는 같은 수의 주문과 항목으로 전체 응답 생성까지 실행합니다. SQL 횟수만 줄었는지, 읽은 행과 응답 시간·메모리도 줄었는지를 함께 보면 설정의 효과를 과장하지 않을 수 있습니다.

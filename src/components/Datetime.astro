@@ -4,7 +4,6 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import IconCalendar from "@/assets/icons/IconCalendar.svg";
 import config from "@/config";
-import { useTranslations } from "@/i18n";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -25,19 +24,17 @@ const {
   timezone: postTimezone,
 } = Astro.props;
 
-const t = useTranslations(Astro.currentLocale);
-
-const isModified = modDatetime && modDatetime > pubDatetime;
-
-const datetime = dayjs(isModified ? modDatetime : pubDatetime).tz(
-  postTimezone ?? config.site.timezone
-);
-
-const date = datetime.format("D MMM, YYYY");
+const displayTimezone = postTimezone ?? config.site.timezone;
+const published = dayjs(pubDatetime).tz(displayTimezone);
+const modified = modDatetime ? dayjs(modDatetime).tz(displayTimezone) : null;
+const showModified = size === "lg" && modified?.isAfter(published);
 ---
 
 <div
-  class:list={["text-muted-foreground flex items-center gap-x-2", className]}
+  class:list={[
+    "text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1",
+    className,
+  ]}
 >
   <IconCalendar
     class:list={[
@@ -45,17 +42,20 @@ const date = datetime.format("D MMM, YYYY");
       { "scale-90": size === "sm" },
     ]}
   />
+  <time
+    class:list={["text-sm", { "sm:text-base": size === "lg" }]}
+    datetime={published.toISOString()}
+  >
+    {published.format("YYYY.MM.DD")}
+  </time>
   {
-    isModified && (
-      <span class:list={["text-sm", { "sm:text-base": size === "lg" }]}>
-        {t.post.updatedAt}:
+    showModified && modified && (
+      <span class="text-sm sm:text-base">
+        · 수정{" "}
+        <time datetime={modified.toISOString()}>
+          {modified.format("YYYY.MM.DD")}
+        </time>
       </span>
     )
   }
-  <time
-    class:list={["text-sm", { "sm:text-base": size === "lg" }]}
-    datetime={datetime.toISOString()}
-  >
-    {date}
-  </time>
 </div>

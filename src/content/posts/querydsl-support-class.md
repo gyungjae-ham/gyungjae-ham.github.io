@@ -1,192 +1,27 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-18T18:19:12+09:00
-title: "QueryDSL 지원 클래스 만들기"
+modDatetime: 2026-10-06T18:18:44+09:00
+title: "QueryDSL 페이징 지원 클래스를 만들기 전에 나눌 책임"
 slug: "querydsl-support-class"
 featured: false
 draft: false
-tags: ["querydsl", "jpa", "spring-data-jpa", "java"]
-description: "QuerydslRepositorySupport 의 한계를 짚고, 페이징·정렬까지 깔끔하게 처리하는 커스텀 추상 클래스를 직접 구현해봅니다."
+tags: ["학습노트", "querydsl", "jpa", "spring-data-jpa", "java"]
+description: "공통화할 수 있는 offset·limit과 조회마다 달라지는 정렬·count를 구분합니다. QueryDSL 4 학습 코드와 5.x의 count API 차이도 정리합니다."
 ---
 
-> 김영한님의 JPA 로드맵을 따라 학습하면서 정리한 노트입니다.
+여러 Repository에서 QueryDSL 페이징 코드가 반복되면 공통 지원 클래스를 만들고 싶어집니다. 하지만 공통화할 부분과 쿼리마다 달라야 하는 부분을 먼저 나눠야 합니다. offset·limit은 같아도 정렬 가능한 필드와 count의 의미는 다를 수 있습니다.
 
-## 사용하는 이유
+## 지원 클래스가 대신할 수 있는 것
 
-스프링 데이터 JPA 가 제공하는 `QuerydslRepositorySupport` 는 편리하지만 몇 가지 한계가 있습니다.
+`JPAQueryFactory`의 제공이나 페이지 제한 적용은 공통화하기 쉽습니다. 반면 조인된 별칭의 정렬, null 순서, 동일 값의 tie-break, 컬렉션 조인 후 count는 각 조회의 정책입니다.
 
-- 메소드 체인이 풀리는 문제와 `FROM` 절로 시작해야 하는 가독성 문제가 있습니다.
-- **`sort` 기능이 완전하지 않다는 치명적인 단점**이 존재합니다.
-- 따라서 커스텀 추상 클래스를 직접 구현하여 코드량을 줄이고자 합니다.
+Spring의 `Querydsl.applyPagination`을 감싸는 것만으로 모든 정렬 문제가 해결되지는 않습니다. 원래의 정렬 변환에 다시 위임하고 있기 때문입니다. 공통 클래스가 처리한다고 설명하려면 실제로 어떤 입력 정렬이 어떤 OrderSpecifier로 바뀌는지 보여줘야 합니다.
 
-## QueryDSL 을 지원하는 추상 클래스 생성하기
+## 상속 전에 조합으로 시작할 수 있다
 
-QueryDSL 4.x 버전에 맞춘 지원 라이브러리입니다. 스프링 데이터 JPA 의 `QuerydslRepositorySupport` 를 참고하여 작성합니다.
+Repository가 JPAQueryFactory를 받고, 내용 조회와 count 조회를 직접 만드는 방식으로도 중복이 많지 않을 수 있습니다. [명시적인 페이징 예시](/posts/spring-data-jpa-querydsl-paging/)처럼 먼저 정책을 드러낸 뒤, 여러 조회에서 정말 같은 부분만 함수로 추출합니다.
 
-```java
-/**
- * Querydsl 4.x 버전에 맞춘 Querydsl 지원 라이브러리
- * @see org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
- */
-@Repository
-public abstract class Querydsl4RepositorySupport {
-    private final Class domainClass;
-    private Querydsl querydsl;
-    private EntityManager entityManager;
-    private JPAQueryFactory queryFactory;
+이 글의 초기 학습 코드는 QueryDSL 4.x의 `fetchCount()`를 사용했습니다. QueryDSL JPA 5.x에서는 이 API가 deprecated이며 복잡한 그룹 조회에는 자동 count 변환의 한계가 있습니다. 새 지원 코드를 만든다면 content와 `Long` count 조회를 별도로 전달하거나, 총 개수가 필요 없는 Slice를 검토합니다.
 
-    public Querydsl4RepositorySupport(Class<?> domainClass) {
-        Assert.notNull(domainClass, "Domain class must not be null!");
-        this.domainClass = domainClass;
-    }
-
-    @Autowired
-    public void setEntityManager(EntityManager entityManager) {
-        Assert.notNull(entityManager, "EntityManager must not be null!");
-        JpaEntityInformation entityInformation = JpaEntityInformationSupport.getEntityInformation(domainClass, entityManager);
-        SimpleEntityPathResolver resolver = SimpleEntityPathResolver.INSTANCE;
-        EntityPath path = resolver.createPath(entityInformation.getJavaType());
-        this.entityManager = entityManager;
-        this.querydsl = new Querydsl(entityManager, new PathBuilder<>(path.getType(), path.getMetadata()));
-        this.queryFactory = new JPAQueryFactory(entityManager);
-    }
-
-    @PostConstruct
-    public void validate() {
-        Assert.notNull(entityManager, "EntityManager must not be null!");
-        Assert.notNull(querydsl, "Querydsl must not be null!");
-        Assert.notNull(queryFactory, "QueryFactory must not be null!");
-    }
-
-    protected JPAQueryFactory getQueryFactory() {
-        return queryFactory;
-    }
-
-    protected Querydsl getQuerydsl() {
-        return querydsl;
-    }
-
-    protected EntityManager getEntityManager() {
-        return entityManager;
-    }
-
-    protected <T> JPAQuery<T> select(Expression<T> expr) {
-        return getQueryFactory().select(expr);
-    }
-
-    protected <T> JPAQuery<T> selectFrom(EntityPath<T> from) {
-        return getQueryFactory().selectFrom(from);
-    }
-
-    protected <T> Page<T> applyPagination(Pageable pageable, Function<JPAQueryFactory, JPAQuery> contentQuery) {
-        JPAQuery jpaQuery = contentQuery.apply(getQueryFactory());
-        List<T> content = getQuerydsl().applyPagination(pageable, jpaQuery).fetch();
-        return PageableExecutionUtils.getPage(content, pageable, jpaQuery::fetchCount);
-    }
-
-    protected <T> Page<T> applyPagination(Pageable pageable, Function<JPAQueryFactory, JPAQuery> contentQuery, Function<JPAQueryFactory, JPAQuery> countQuery) {
-        JPAQuery jpaContentQuery = contentQuery.apply(getQueryFactory());
-        List<T> content = getQuerydsl().applyPagination(pageable, jpaContentQuery).fetch();
-        JPAQuery countResult = countQuery.apply(getQueryFactory());
-        return PageableExecutionUtils.getPage(content, pageable, countResult::fetchCount);
-    }
-}
-```
-
-- **`select` / `selectFrom`** 을 protected 메서드로 노출하여 `JPAQueryFactory` 를 매번 꺼낼 필요가 없도록 합니다.
-- **`applyPagination`** 은 페이징 처리를 내부적으로 처리해주는 메소드입니다. 카운트 쿼리를 분리하는 오버로드도 함께 제공합니다.
-
-## 지원 추상 클래스를 상속받은 레포지토리 예제
-
-실제로 추상 클래스를 상속받아 사용하는 모습입니다.
-
-```java
-@Repository
-public class MemberTestRepository extends Querydsl4RepositorySupport {
-    // 생성자에 타겟 엔티티를 넣어줍니다
-    public MemberTestRepository() {
-        super(Member.class);
-    }
-
-    public List<Member> basicSelect() {
-        // QueryFactory 생성 없이 바로 작성할 수 있게 됩니다
-        return select(member)
-                .from(member)
-                .fetch();
-    }
-
-    public List<Member> basicSelectFrom() {
-        // QueryFactory 생성 없이 바로 작성할 수 있게 됩니다
-        return selectFrom(member)
-                .fetch();
-    }
-
-    public Page<Member> searchPageByApplyPage(MemberSearchCondition condition, Pageable pageable) {
-        JPAQuery<Member> query = selectFrom(member)
-                .leftJoin(member.team, team)
-                .where(usernameEq(condition.getUsername()),
-                        teamNameEq(condition.getTeamName()),
-                        ageGoe(condition.getAgeGoe()),
-                        ageLoe(condition.getAgeLoe()));
-
-        // 페이징 처리를 해주는 부분입니다(offset, limit) 처리를 알아서 처리해줍니다
-        List<Member> content = getQuerydsl().applyPagination(pageable, query)
-                .fetch();
-        return PageableExecutionUtils.getPage(content, pageable, query::fetchCount);
-    }
-
-    // searchPageByApplyPage와 동일한 기능을 합니다
-    // getQuerydsl().applyPagination 부분을 내부적으로 처리하고 있는 메소드를 사용했습니다
-    public Page<Member> applyPagination(MemberSearchCondition condition, Pageable pageable) {
-        return applyPagination(pageable, contentQuery -> contentQuery
-                .selectFrom(member)
-                .leftJoin(member.team, team)
-                .where(usernameEq(condition.getUsername()),
-                        teamNameEq(condition.getTeamName()),
-                        ageGoe(condition.getAgeGoe()),
-                        ageLoe(condition.getAgeLoe())));
-    }
-
-    // 앞 선 학습에서 나왔던 searchComplex에서 조회하는 쿼리와 카운트 쿼리를 분리했었습니다
-    // 위 예제의 두 쿼리를 하나의 메서드로 합쳐서 구현한 부분입니다(람다식으로 구현)
-    public Page<Member> applyPagination2(MemberSearchCondition condition, Pageable pageable) {
-        return applyPagination(pageable, contentQuery -> contentQuery
-                        .selectFrom(member)
-                        .leftJoin(member.team, team)
-                        .where(usernameEq(condition.getUsername()),
-                                teamNameEq(condition.getTeamName()),
-                                ageGoe(condition.getAgeGoe()),
-                                ageLoe(condition.getAgeLoe())),
-                countQuery -> countQuery
-                        .selectFrom(member)
-                        .leftJoin(member.team, team)
-                        .where(usernameEq(condition.getUsername()),
-                                teamNameEq(condition.getTeamName()),
-                                ageGoe(condition.getAgeGoe()),
-                                ageLoe(condition.getAgeLoe()))
-        );
-    }
-
-    // 아래 메서드들은 동적 쿼리를 WHERE절의 다중 파라미터로 해결하기 위한 메서드 구현입니다
-    private BooleanExpression usernameEq(String username) {
-        return isEmpty(username) ? null : member.username.eq(username);
-    }
-
-    private BooleanExpression teamNameEq(String teamName) {
-        return isEmpty(teamName) ? null : team.name.eq(teamName);
-    }
-
-    private BooleanExpression ageGoe(Integer ageGoe) {
-        return ageGoe == null ? null : member.age.goe(ageGoe);
-    }
-
-    private BooleanExpression ageLoe(Integer ageLoe) {
-        return ageLoe == null ? null : member.age.loe(ageLoe);
-    }
-}
-```
-
-- **`basicSelect` / `basicSelectFrom`** 처럼 `QueryFactory` 생성 없이 바로 작성할 수 있게 됩니다.
-- **`searchPageByApplyPage`** 는 `getQuerydsl().applyPagination` 을 직접 호출하여 `offset`, `limit` 을 자동 처리합니다.
-- **`applyPagination`** 은 동일한 기능을 더 간결한 람다식으로 표현한 모습입니다.
-- **`applyPagination2`** 는 조회 쿼리와 카운트 쿼리를 분리하여 카운트 쿼리를 최적화할 수 있도록 두 람다를 받는 형태입니다.
+공통화 이후에도 쿼리 자체의 검증은 남습니다. 같은 정렬값의 여러 행, null, 마지막 페이지, 조인으로 늘어난 행을 데이터로 넣어 봅니다. 추상 클래스가 짧아졌다는 사실보다 호출부에서 조회 정책을 여전히 읽을 수 있는지가 중요합니다.

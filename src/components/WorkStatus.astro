@@ -1,0 +1,23 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+type Props = {
+  status?: CollectionEntry<"posts">["data"]["workStatus"];
+};
+
+const { status } = Astro.props;
+const labels = {
+  review: "검토 중",
+  partial: "일부 반영",
+  closed: "미병합 종료",
+  "validation-pending": "추가 검증 필요",
+};
+---
+
+{
+  status && (
+    <span class="border-border text-muted-foreground inline-block rounded border px-2 py-0.5 text-xs">
+      작업 상태: {labels[status]}
+    </span>
+  )
+}

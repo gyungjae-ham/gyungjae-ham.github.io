@@ -2,7 +2,7 @@
 author: "luca"
 pubDatetime: 2026-06-18T00:00:00+09:00
 title: "리뷰에 도움돼요 정렬을 더했더니 JOIN이 곱으로 늘어났다"
-featured: false
+featured: true
 draft: false
 tags: ["Django", "MySQL", "query"]
 description: "사진과 도움돼요를 함께 집계하면 행이 곱으로 늘어납니다. 작은 리뷰 예시에서 시작해 집계를 분리하고 세 가지 정렬을 제공한 과정을 설명합니다."

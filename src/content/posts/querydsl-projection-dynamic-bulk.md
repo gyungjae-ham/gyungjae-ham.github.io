@@ -1,11 +1,12 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-18T15:57:22+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 title: "프로젝션과 결과 반환, 동적쿼리, 벌크 쿼리"
 slug: "querydsl-projection-dynamic-bulk"
 featured: false
 draft: false
-tags: ["querydsl", "jpa", "dynamic-query", "java"]
+tags: ["학습노트", "querydsl", "jpa", "dynamic-query", "java"]
 description: "QueryDSL 의 프로젝션 종류, 동적 쿼리 두 가지 방식, 벌크 연산과 SQL 함수 호출까지 한 번에 정리합니다."
 ---
 
@@ -46,12 +47,14 @@ for (Tuple tuple : result) {
 
 ```java
 List<MemberDto> result = em.createQuery(
-    "SELECT new study.querydsl.dto.MemberDto(m.username, n.age) "
+    "SELECT new study.querydsl.dto.MemberDto(m.username, m.age) "
     + "from Member m", MemberDto.class)
     .getResultList();
 ```
 
 ### QueryDSL 빈 생성 - 3가지 방법
+
+QueryDSL 5.x의 개별 예시입니다. `bean`은 기본 생성자와 쓰기 가능한 프로퍼티, `fields`는 기본 생성자와 대응 필드를 준비해야 합니다. `constructor`는 인자 순서와 타입이 일치하는 생성자가 필요하며, 생성자 일치 여부는 실행 때 드러날 수 있습니다. 아래에서 엔티티·Q 타입과 EntityManager 준비는 생략했습니다.
 
 **프로퍼티 접근 (Setter)**
 
@@ -128,7 +131,7 @@ List<MemberDto> result = queryFactory
     .fetch();
 ```
 
-- 이 방식은 "컴파일러로 타입을 확인할 수 있으므로 가장 안전한 방법"입니다.
+- 생성된 Q 타입의 생성자를 통해 인자 타입을 컴파일 때 확인할 수 있습니다. 쿼리의 의미나 DB 실행 성공까지 보장하는 것은 아닙니다.
 - 다만 DTO 에 QueryDSL 어노테이션을 유지해야 한다는 점은 트레이드오프입니다.
 
 ## 동적 쿼리 - BooleanBuilder
@@ -170,7 +173,7 @@ private BooleanExpression ageEq(Integer ageCond) {
 }
 ```
 
-이 방식은 "코드가 깔끔해지기 때문에 더 선호되는 방법"입니다. `where` 절의 `null` 값은 무시되며, 메서드 재활용이 가능합니다.
+`where`의 null 인자는 무시됩니다. 조건 조합을 재사용하기 좋지만 모든 조건이 null이면 전체 조회가 될 수 있습니다. 검색 API의 빈 조건 정책과 최대 조회 범위를 먼저 정합니다. 같은 회원·팀 검색을 두 방식으로 비교한 예시는 [동적 검색 쿼리](/posts/pure-jpa-with-querydsl/)에 있습니다.
 
 ## 수정, 삭제 벌크 연산
 
@@ -211,7 +214,7 @@ long count = queryFactory
     .execute();
 ```
 
-> 중요: "영속성 컨텍스트에 있는 엔티티를 무시하고 실행되므로 배치 쿼리를 실행하고 나면 영속성 컨텍스트를 초기화하는 것이 안전합니다."
+위 벌크 예시는 활성 트랜잭션 안에서 실행합니다. 미반영 엔티티 변경이 있다면 먼저 `em.flush()`하고, 벌크 실행 뒤 `em.clear()`와 재조회로 오래된 메모리 값을 사용하지 않게 합니다. clear는 저장되지 않은 변경을 버릴 수 있으므로 순서를 바꾸지 않습니다.
 
 ## SQL Function 호출하기
 

@@ -2,7 +2,7 @@
 author: "luca"
 pubDatetime: 2026-07-27T00:00:00+09:00
 title: "무료교환을 0원 결제로 만들지 않은 이유"
-featured: false
+featured: true
 draft: false
 tags: ["Django", "transaction", "benefit", "idempotency"]
 description: "첫 구매 무료교환에서 취소 후 혜택을 다시 쓸 수 있게 했습니다. 늦게 도착한 이전 취소가 새 교환의 혜택까지 되돌리지 않도록 만든 과정입니다."

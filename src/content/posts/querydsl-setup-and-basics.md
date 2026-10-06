@@ -1,24 +1,27 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-17T16:35:37+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 title: "QueryDSL 설정법, 활용법 (검색조건쿼리, 기본 문법들)"
 slug: "querydsl-setup-and-basics"
 featured: false
 draft: false
-tags: ["querydsl", "jpa", "spring-data-jpa", "java"]
+tags: ["학습노트", "querydsl", "jpa", "spring-data-jpa", "java"]
 description: "Spring Boot 3.0 이상 환경의 QueryDSL 설정부터 검색 조건, 정렬, 페이징, 조인, 서브쿼리, Case 문까지 기본 문법을 한 번에 훑습니다."
 ---
 
-> 김영한님의 JPA 로드맵을 따라 학습하면서 정리한 노트입니다.
+> 김영한님의 JPA 로드맵을 따라 학습한 예시입니다. Java 17·Spring Boot 3.0.x·QueryDSL 5.0.0을 기준으로 합니다.
+
+아래 코드 블록은 각 문법을 설명하는 독립된 조각입니다. EntityManager·JPAQueryFactory와 Member·Team·Q 타입의 정의는 생략했습니다. 테스트 예시는 member1~member4의 나이가 각각 10·20·30·40이고, teamA에 앞의 두 명, teamB에 뒤의 두 명이 연결된 fixture를 가정합니다. `Member.team`은 LAZY로 매핑한 전제이며, 테스트마다 초기 상태로 되돌려야 합니다. 설정은 [짧은 설정 글](/posts/querydsl-quick-setup/)과 같은 버전 조합입니다.
 
 ## QueryDSL 설정방법 (Spring Boot 3.0 이상)
 
 `build.gradle` 의 dependencies 에 다음을 추가합니다.
 
-```gradle
+```groovy
 // Querydsl 추가
 implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
 annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 ```
@@ -107,7 +110,7 @@ member.username.eq("member1")           // username = 'member1'
 member.username.ne("member1")           // username != 'member1'
 member.username.eq("member1").not()     // username != 'member1'
 
-member.useranme.isNotNull()             // 이름이 is not null
+member.username.isNotNull()             // 이름이 is not null
 
 member.age.in(10, 20)                   // age in (10, 20)
 member.age.notIn(10, 20)                // age not in (10, 20)
@@ -158,6 +161,8 @@ void searchParam() {
 
 ## 결과 조회
 
+아래 `fetchResults()`·`fetchCount()`는 이전 API를 읽기 위한 예시입니다. QueryDSL JPA 5.x에서 deprecated이며, GROUP BY·HAVING 등 복잡한 쿼리에서는 메모리 계산이 필요할 수 있습니다. 신규 페이징은 [내용과 count를 분리한 방식](/posts/spring-data-jpa-querydsl-paging/)을 참고합니다.
+
 ```java
 // 리스트 조회
 List<Member> fetch = queryFactory
@@ -167,6 +172,7 @@ List<Member> fetch = queryFactory
 // 단 건 조회
 Member findMember1 = queryFactory
     .selectFrom(member)
+    .where(member.username.eq("member1"))
     .fetchOne();
 
 // 첫 번째 건 조회
@@ -236,7 +242,7 @@ public void sort() {
 public void paging1() {
     List<Member> result = queryFactory
         .selectFrom(member)
-        .orderBy(member.username.desc())
+        .orderBy(member.username.desc(), member.id.desc())
         .offset(1)  // 0부터 시작(zero index)
         .limit(2)   // 최대 2건 조회
         .fetch();
@@ -252,7 +258,7 @@ public void paging1() {
 public void paging2() {
     QueryResults<Member> queryResults = queryFactory
         .selectFrom(member)
-        .orderBy(member.username.desc())
+        .orderBy(member.username.desc(), member.id.desc())
         .offset(1)
         .limit(2)
         .fetchResults();
@@ -294,9 +300,9 @@ public void aggregation() throws Exception {
         .fetch();
 
     Tuple tuple = result.get(0);
-    assertThat(tuple.get(member.count())).isEqualTo(4);
+    assertThat(tuple.get(member.count())).isEqualTo(4L);
     assertThat(tuple.get(member.age.sum())).isEqualTo(100);
-    assertThat(tuple.get(member.age.avg())).isEqualTo(25);
+    assertThat(tuple.get(member.age.avg())).isEqualTo(25.0);
     assertThat(tuple.get(member.age.max())).isEqualTo(40);
     assertThat(tuple.get(member.age.min())).isEqualTo(10);
 }
@@ -315,16 +321,17 @@ public void group() throws Exception {
         .from(member)
         .join(member.team, team)
         .groupBy(team.name)
+        .orderBy(team.name.asc())
         .fetch();
 
     Tuple teamA = result.get(0);
     Tuple teamB = result.get(1);
 
     assertThat(teamA.get(team.name)).isEqualTo("teamA");
-    assertThat(teamA.get(member.age.avg())).isEqualTo(15);
+    assertThat(teamA.get(member.age.avg())).isEqualTo(15.0);
 
     assertThat(teamB.get(team.name)).isEqualTo("teamB");
-    assertThat(teamB.get(member.age.avg())).isEqualTo(35);
+    assertThat(teamB.get(member.age.avg())).isEqualTo(35.0);
 }
 ```
 
@@ -364,7 +371,7 @@ public void join() throws Exception {
 
     assertThat(result)
         .extracting("username")
-        .containsExactly("member1", "member2");
+        .containsExactlyInAnyOrder("member1", "member2");
 }
 ```
 
@@ -396,11 +403,11 @@ public void theta_join() throws Exception {
 
     assertThat(result)
         .extracting("username")
-        .containsExactly("teamA", "teamB");
+        .containsExactlyInAnyOrder("teamA", "teamB");
 }
 ```
 
-> 외부 조인은 `ON` 절을 사용하면 가능합니다.
+> 아래의 연관관계 없는 엔티티 외부 조인은 Hibernate 확장에 의존합니다. QueryDSL이 해당 구문을 생성해도 모든 JPA 구현체에서 지원되지는 않습니다.
 
 ### 조인 ON 절
 
@@ -427,7 +434,7 @@ public void join_on_filtering() throws Exception {
 }
 ```
 
-> 내부 조인에서는 `WHERE` 절과 기능이 동일하므로, 외부 조인이 필요할 때만 `ON` 절을 사용합니다.
+> 이 예의 내부 조인 필터는 WHERE로 옮겨도 결과가 같지만, 외부 조인에서는 ON의 대상 제한과 WHERE의 결과 제한이 다릅니다. ON을 외부 조인에서만 써야 하는 규칙은 아닙니다.
 
 #### 2. 연관관계 없는 엔티티 외부 조인
 
@@ -515,7 +522,7 @@ public void fetchJoinUse() throws Exception {
  * 나이가 가장 많은 회원 조회
  */
 @Test
-public void subQuery() throws Exception {
+public void subQueryMaxAge() throws Exception {
     QMember memberSub = new QMember("memberSub");
 
     List<Member> result = queryFactory
@@ -537,7 +544,7 @@ public void subQuery() throws Exception {
  * 나이가 평균 나이 이상인 회원
  */
 @Test
-public void subQuery() throws Exception {
+public void subQueryAverageAge() throws Exception {
     QMember memberSub = new QMember("memberSub");
 
     List<Member> result = queryFactory
@@ -548,7 +555,7 @@ public void subQuery() throws Exception {
                 .from(memberSub)
         )).fetch();
 
-    assertThat(result).extracting("age").containsExactly(30, 40);
+    assertThat(result).extracting("age").containsExactlyInAnyOrder(30, 40);
 }
 ```
 
@@ -559,7 +566,7 @@ public void subQuery() throws Exception {
  * 서브쿼리 여러 건 처리, in 사용
  */
 @Test
-public void subQuery() throws Exception {
+public void subQueryAgeIn() throws Exception {
     QMember memberSub = new QMember("memberSub");
 
     List<Member> result = queryFactory
@@ -571,18 +578,20 @@ public void subQuery() throws Exception {
                 .where(memberSub.age.gt(10))
         )).fetch();
 
-    assertThat(result).extracting("age").containsExactly(20, 30, 40);
+    assertThat(result).extracting("age").containsExactlyInAnyOrder(20, 30, 40);
 }
 ```
 
 ### select 절에 서브쿼리
 
+이 예시는 Hibernate 확장에 의존합니다. 이 글의 기준인 표준 JPQL에서 서브쿼리는 WHERE·HAVING 범위이며, QueryDSL 코드가 만들어진다는 사실만으로 모든 JPA 구현체가 지원하는 것은 아닙니다.
+
 ```java
 @Test
-public void subQuery() throws Exception {
+public void subQueryInSelect() throws Exception {
     QMember memberSub = new QMember("memberSub");
 
-    List<Member> result = queryFactory
+    List<Tuple> result = queryFactory
         .select(member.username,
                 JPAExpressions
                     .select(memberSub.age.avg())

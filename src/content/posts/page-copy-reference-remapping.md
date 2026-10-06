@@ -1,9 +1,11 @@
 ---
 author: "luca"
 pubDatetime: 2026-08-21T00:00:00+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 title: "페이지는 복제됐는데 필터는 원본을 보고 있었다"
 featured: false
 draft: false
+workStatus: validation-pending
 tags: ["Django", "transaction", "data-integrity"]
 description: "복제한 페이지의 필터가 원본 상품 목록을 참조하고 있었습니다. JSON 안의 내부 연결은 새 대상으로 바꾸고 외부 링크는 유지하도록 수정했습니다."
 ---
@@ -21,6 +23,14 @@ description: "복제한 페이지의 필터가 원본 상품 목록을 참조하
         ↓ 복제              ↓ 복제
 새 페이지의 필터   → 새 상품 pool로 연결
 ```
+
+참조 변환을 설명하기 위해 UUID와 필드명을 줄이면 다음과 같습니다. 실제 저장 JSON의 발췌는 아닙니다.
+
+```json
+{ "before": { "poolRef": "old-pool" }, "after": { "poolRef": "new-pool" } }
+```
+
+`old-pool → new-pool` 매핑이 있어야 바꿀 수 있습니다. 복제 대상 내부 참조인데 대응값이 없다면 원본을 계속 가리키게 두는 대신 복제를 실패시켜야 합니다. 복제 범위 밖의 링크는 이 치환 대상이 아닙니다.
 
 상품 순서와 노출 기간도 함께 옮겼습니다. 원본의 구성을 유지하면서 이후 수정은 새 페이지 안에서 이루어져야 했기 때문입니다. 생성과 참조 변환을 한 트랜잭션으로 처리하고 필요한 pool을 찾지 못하면 전체를 롤백하도록 했습니다. 중간까지만 복사된 페이지를 남기지 않으려는 처리입니다.
 

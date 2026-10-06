@@ -2,7 +2,7 @@
 author: "luca"
 pubDatetime: 2026-03-24T00:00:00+09:00
 title: "245개 View를 건드리지 않고 예외 모니터링을 한곳으로 모으기"
-featured: false
+featured: true
 draft: false
 tags: ["Django", "DRF", "Sentry", "refactoring"]
 description: "API의 오류 응답을 유지하면서 Sentry·Slack 알림을 한 곳으로 모았습니다. DRF의 예외 처리 순서와 테스트에서 함수 교체가 반영되지 않았던 이유를 설명합니다."

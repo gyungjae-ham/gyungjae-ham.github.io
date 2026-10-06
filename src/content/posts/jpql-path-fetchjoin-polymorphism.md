@@ -1,11 +1,12 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-15T23:38:05+09:00
+modDatetime: 2026-10-06T18:18:44+09:00
 title: "경로표현식, Fetch Join, 다형성 쿼리"
 slug: "jpql-path-fetchjoin-polymorphism"
 featured: false
 draft: false
-tags: ["jpa", "jpql", "fetch-join", "n+1"]
+tags: ["학습노트", "jpa", "jpql", "fetch-join", "n+1"]
 description: "JPQL 의 경로 표현식, 묵시적·명시적 조인, Fetch Join 의 한계, 다형성 쿼리와 벌크 연산 주의점까지 정리합니다."
 ---
 
@@ -78,7 +79,7 @@ WHERE t.name = '팀A'
 
 ### 컬렉션 페치 조인
 
-일대다 관계, 컬렉션 페치 조인. 똑같은 결과가 컬렉션의 크기만큼 반복되어 출력됩니다.
+일대다 컬렉션을 조인하면 SQL 행이 자식 수만큼 늘어납니다. 예를 들어 팀 A에 회원 두 명이 있으면 SQL은 팀 A를 포함하는 두 행을 반환합니다. 엔티티 결과 목록의 중복 제거는 JPA 구현·버전에 따라 확인해야 하며, SQL 행 수가 줄어드는 것과는 다릅니다.
 
 - **[JPQL]**
 
@@ -93,7 +94,7 @@ WHERE t.name = '팀A'
   ```
   SELECT t.*, m.*
   FROM Team t
-  INNNER JOIN Member m ON T.id = m.TEAM_ID
+  INNER JOIN Member m ON T.id = m.TEAM_ID
   WHERE t.name = '팀A'
   ```
 
@@ -120,15 +121,15 @@ WHERE t.name = '팀A'
 
 - **페치 조인 대상에는 별칭을 줄 수 없습니다.**
   - 하이버네이트에서는 가능하지만, 가급적 사용하지 않도록 합니다.
-- **둘 이상의 컬렉션은 페치 조인할 수 없습니다.**
-- **컬렉션을 페치 조인하면 페이징 API (`setFirstResult`, `setMaxResult`) 를 사용할 수 없습니다.**
+- Hibernate는 여러 bag 컬렉션의 동시 fetch join을 제한할 수 있습니다(`MultipleBagFetchException`). 모든 종류의 두 컬렉션이 항상 금지되는 것은 아니지만, 가능하더라도 자식 수의 곱으로 행이 늘어날 수 있습니다.
+- **컬렉션 fetch join과 페이징 (`setFirstResult`, `setMaxResults`)을 함께 쓸 때는 DB에서 제한되지 않을 수 있습니다.**
   - 일대일, 다대일 같은 단일 값 연관 필드들은 페치 조인해도 페이징이 가능합니다.
-  - 하이버네이트는 경고 로그를 남기고 메모리에서 페이징해 줍니다 (매우 위험).
+  - Hibernate는 설정에 따라 메모리에서 페이징하거나 오류로 거절할 수 있습니다. 메모리 페이징은 전체 조인 결과를 읽는 비용이 있으므로 확인해야 합니다.
 - 연관된 엔티티들은 SQL 한 번으로 조회 가능합니다 — **성능 최적화**.
 - 엔티티에 직접 적용하는 글로벌 로딩 전략보다 우선합니다.
   - `@OneToMany(fetch = FetchType.LAZY)`
-- **실무에서 글로벌 로딩 전략은 모두 지연 로딩으로 해 둡니다.**
-- 성능 최적화가 필요한 곳은 모두 페치 조인을 적용하도록 합니다.
+- 필요한 관계를 조회별로 선택하기 위해 지연 로딩을 출발점으로 삼을 수 있습니다. 실제 매핑과 SQL을 확인합니다.
+- 조회에 따라 fetch join, DTO 프로젝션, batch fetch를 비교합니다. 모든 성능 문제를 fetch join으로 해결하지는 않습니다.
 
 ### 페치 조인 정리
 
@@ -152,7 +153,7 @@ WHERE t.name = '팀A'
 - **[SQL]**
 
   ```
-  SELECT i FROM Item i
+  SELECT i.* FROM Item i
   WHERE i.DTYPE in ('B', 'M')
   ```
 
@@ -160,7 +161,7 @@ WHERE t.name = '팀A'
 
 자바의 타입 캐스팅과 유사합니다. 상속 구조에서 부모 타입을 특정 자식 타입으로 다룰 때 사용합니다.
 
-- `FROM`, `WHERE`, `SELECT` (하이버네이트 지원) 에서 사용합니다.
+- 지원 위치와 생성 SQL은 표준 버전·구현체를 확인합니다. 아래는 WHERE에서 하위 타입의 속성에 접근하는 예이며 SQL은 SINGLE_TABLE 매핑을 가정한 설명용입니다.
 - 예: 부모인 `Item` 과 자식 `Book`.
 - **[JPQL]**
 
@@ -238,6 +239,6 @@ int resultCount = em.createQuery(qlString)
 
 ### 벌크 연산 주의
 
-- 벌크 연산은 영속성 컨텍스트를 무시하고 데이터베이스에 직접 쿼리합니다.
+- 벌크 연산은 활성 트랜잭션 안에서 실행하며 영속성 컨텍스트를 우회합니다. 미반영 변경이 있으면 실행 전 flush하고, 실행 후 clear한 다음 다시 조회합니다. clear부터 하면 아직 저장하지 않은 변경을 잃을 수 있습니다.
   - 벌크 연산을 먼저 실행합니다.
   - **벌크 연산 수행 후 영속성 컨텍스트를 초기화**합니다.

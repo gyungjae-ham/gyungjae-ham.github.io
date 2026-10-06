@@ -3,6 +3,7 @@ import type { CollectionEntry } from "astro:content";
 import { getPostUrl } from "@/utils/getPostPaths";
 import { slugifyStr } from "@/utils/slugify";
 import Datetime from "./Datetime.astro";
+import WorkStatus from "./WorkStatus.astro";
 
 type Props = {
   variant?: "h2" | "h3";
@@ -26,6 +27,9 @@ const { title, description, ...props } = data;
       {title}
     </Heading>
   </a>
-  <Datetime {...props} />
+  <div class="my-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+    <Datetime {...props} />
+    <WorkStatus status={data.workStatus} />
+  </div>
   <p>{description}</p>
 </li>
