@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "checked_at": "2026-10-03T10:00:11+09:00",
-  "scope": "Obsidian numbered work logs 01–48",
+  "checked_at": "2026-10-10T10:00:09+09:00",
+  "scope": "Obsidian numbered work logs 01–49",
   "note": "Repository editorial state only; publication is verified separately in GitHub Actions. Withheld sources require evidence review before reconsideration. A changed source hash does not authorize duplicate publication.",
   "entries": [
     {
@@ -438,7 +438,7 @@
     },
     {
       "source_id": "log:39",
-      "source_sha256": "d99804556eb255fd2a918078e1cb3b777504eeac0062257403445cdc82307e50",
+      "source_sha256": "f9b2eeaec8df1c290e6108bfa9d03d064cff9ff36b5abcc8cf529802d7916251",
       "post": "src/content/posts/escrow-return-fee-uncertain-result.md",
       "state": "ready_in_repository",
       "relation": "new_post",
@@ -446,7 +446,10 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-01T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-10-weekly-follow-up",
+      "follow_up_through": "2026-10-08",
+      "follow_up_relation": "integrated_into_existing_post",
+      "editorial_reason": "결과 불명 복구의 후속 사례로 배송 전 주문 전체 취소를 통합했습니다. 기존 발행일을 유지하며 선행 브랜치 병합, 전체 취소 main 병합, 부분 취소 보완 미병합 종료와 외부 연동 미확인을 구분합니다."
     },
     {
       "source_id": "log:40",
@@ -498,7 +501,7 @@
     },
     {
       "source_id": "log:44",
-      "source_sha256": "37dc065a352e906368f26faa91655218731412eace485727e274962e676a56e4",
+      "source_sha256": "b79dfbc7ed8ed74cbeea35eece8b7bb49ae461bb739b90254ba93e6e2b02bdfe",
       "post": "src/content/posts/seller-brand-coupon-scope-settlement.md",
       "state": "ready_in_repository",
       "relation": "new_post",
@@ -506,7 +509,10 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-28T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-10-weekly-follow-up",
+      "follow_up_through": "2026-10-08",
+      "follow_up_relation": "integrated_into_existing_post",
+      "editorial_reason": "입력 경로별 적용 대상 검증과 비활성 쿠폰 추천 제외를 기존 글에 통합했습니다. 적용·관리 PR의 main 병합 상태와 QA의 기존 실패·마이그레이션 재검증 및 운영 결과 미확인을 반영합니다."
     },
     {
       "source_id": "log:45",
@@ -559,6 +565,19 @@
       "publication_date_basis": "verified_own_commit_author_date_kst",
       "pubDatetime": "2026-10-02T00:00:00+09:00",
       "editorial_revision": "2026-10-06-accuracy-context-status"
+    },
+    {
+      "source_id": "log:49",
+      "source_sha256": "bcee2b96cacdf35ef9a85dc97ec562d6f43df94fd31c77296ba9e16de37d53d2",
+      "post": "src/content/posts/scheduler-restart-selective-recovery.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "editorial_reason": "공유 저장소의 버전 경합과 재시작 복구 허용 기준을 다루는 독립 사례입니다. 기존 오류 알림·결제 결과 불명 글과 문제 및 검증이 다르며 미병합 종료와 로컬 검증의 범위를 명시합니다.",
+      "work_date_start": "2026-10-06",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-10-06T00:00:00+09:00",
+      "editorial_revision": "2026-10-10-weekly-publication"
     }
   ],
   "publication_date_policy": {
