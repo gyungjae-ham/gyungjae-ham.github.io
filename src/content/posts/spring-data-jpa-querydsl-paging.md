@@ -1,16 +1,18 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-18T17:42:44+09:00
-modDatetime: 2026-10-06T18:18:44+09:00
-title: "스프링 데이터 JPA와 QueryDSL, 페이징"
+modDatetime: 2026-10-13T15:51:36+09:00
+title: "QueryDSL 목록 조회의 정렬과 전체 개수 계산"
 slug: "spring-data-jpa-querydsl-paging"
 featured: false
 draft: false
 tags: ["학습노트", "querydsl", "jpa", "spring-data-jpa", "java"]
-description: "QueryDSL 5에서 결정적 정렬과 명시적 count로 페이징을 구현합니다. Pageable.sort 처리, fragment 명명과 동시 데이터 변경의 한계도 다룹니다."
+description: "회원은 두 명인데 조인 결과가 세 행이면 전체 개수는 무엇일까요. 페이지의 내용과 count가 같은 대상을 세도록 쿼리를 나눠 작성합니다."
 ---
 
-목록 API의 페이징은 offset과 limit을 넣는 것만으로 끝나지 않습니다. 동일 점수의 항목이 어떤 순서로 나오는지, 전체 개수가 무엇을 세는지, 외부에서 받은 정렬 조건을 적용하는지가 함께 정해져야 합니다.
+회원 목록에서 주문을 함께 조인한다고 생각해 보겠습니다. 회원 A의 주문이 두 건, B의 주문이 한 건이면 조인 결과는 세 행이 될 수 있습니다. 화면에는 회원 두 명을 보여 주는데 전체 개수를 3으로 반환하면 페이지 안내가 맞지 않습니다.
+
+페이징은 offset과 limit 외에도 무엇을 한 항목으로 셀지, 같은 정렬값의 순서는 어떻게 할지 정해야 합니다. 먼저 조인 없는 단순한 회원 조회로 content와 count를 분리해 보겠습니다.
 
 이 글은 Spring Data JPA와 QueryDSL 5.x를 기준으로 합니다. 커스텀 구현은 fragment 인터페이스와 그 이름에 `Impl`을 붙인 구현을 조합할 수 있습니다. 예를 들어 `MemberSearchRepository`와 `MemberSearchRepositoryImpl`을 만들고, 기본 JpaRepository가 fragment를 상속하게 합니다. 기존 Repository 이름 자체에 `Impl`을 붙이는 관례와 구분합니다. [Spring Data 커스텀 구현](https://docs.spring.io/spring-data/jpa/reference/repositories/custom-implementations.html)
 
@@ -45,7 +47,7 @@ public Page<Member> findAdults(Pageable pageable) {
 
 이름이나 나이로 정렬해야 한다면 허용할 필드를 QueryDSL 표현식으로 매핑하고, 마지막에 고유 ID를 추가해 동률 순서를 정합니다. 클라이언트가 보낸 속성명을 무제한으로 쿼리에 연결하지 않습니다. 요청 페이지 크기의 상한도 API에서 정합니다.
 
-## fetchResults 대신 count의 의미를 정한다
+## 조인이 생기면 무엇을 세는지 다시 확인하기
 
 QueryDSL JPA의 `fetchResults()`·`fetchCount()`는 5.x에서 deprecated입니다. 복잡한 GROUP BY·HAVING을 올바른 JPQL count 쿼리로 바꾸기 어려운 경우가 있기 때문입니다. [QueryDSL 5.0 변경 기록](https://github.com/querydsl/querydsl/releases/tag/QUERYDSL_5_0_0)
 
@@ -53,8 +55,8 @@ QueryDSL JPA의 `fetchResults()`·`fetchCount()`는 5.x에서 deprecated입니�
 
 `PageableExecutionUtils.getPage`로 일부 count를 생략할 수 있지만, 내용 목록과 전체 개수가 같은 단위를 세는 조건을 먼저 만족해야 합니다. 총 개수가 필요하지 않다면 한 건 더 읽어 다음 페이지 존재만 알려주는 Slice도 선택지입니다.
 
-## 페이지 경계에서 확인한다
+## 같은 나이의 회원이 여러 명일 때
 
 예를 들어 같은 나이의 회원을 여러 명 넣고 페이지 크기를 2로 두면, 나이 정렬만으로는 동률 순서가 불명확합니다. ID tie-break를 더한 뒤 첫 페이지와 다음 페이지의 중복·누락을 확인합니다. 빈 결과와 마지막 페이지도 별도 사례입니다.
 
-고정 정렬은 동일 데이터셋의 순서를 정할 뿐, 페이지 사이에 데이터가 추가·삭제되는 문제까지 막지는 않습니다. 변경이 잦은 목록이라면 cursor 방식이나 조회 스냅샷 요구를 함께 검토합니다.
+ID를 추가하면 같은 데이터에서 동률 순서를 정할 수 있습니다. 다만 첫 페이지를 읽은 뒤 앞쪽에 새 회원이 추가되면 다음 offset 페이지에 이미 본 회원이 나올 수 있습니다. 변경이 잦은 목록에서는 cursor 방식이나 같은 시점의 데이터를 유지해야 하는 요구까지 따로 검토해야 합니다.

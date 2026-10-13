@@ -1,244 +1,87 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-15T23:38:05+09:00
-modDatetime: 2026-10-06T18:18:44+09:00
-title: "경로표현식, Fetch Join, 다형성 쿼리"
+modDatetime: 2026-10-13T15:32:55+09:00
+title: "JPQL 조인과 fetch join의 차이"
 slug: "jpql-path-fetchjoin-polymorphism"
 featured: false
 draft: false
 tags: ["학습노트", "jpa", "jpql", "fetch-join", "n+1"]
-description: "JPQL 의 경로 표현식, 묵시적·명시적 조인, Fetch Join 의 한계, 다형성 쿼리와 벌크 연산 주의점까지 정리합니다."
+description: "회원과 팀을 함께 조회하는 예제로 일반 조인과 fetch join을 비교합니다. 컬렉션 페이징, 상속 타입 조회, 벌크 수정에서 달라지는 동작도 정리했습니다."
 ---
 
-> 김영한님의 JPA 로드맵을 따라 학습하면서 정리한 노트입니다.
+회원을 조회한 뒤 화면에 팀 이름을 표시한다고 가정해 보겠습니다. JPQL에 팀 조인이 들어 있으니 팀 정보도 이미 읽었다고 생각하기 쉽습니다. 하지만 조건을 위해 팀을 조인하는 것과, 연관된 팀 엔티티까지 초기화하는 것은 다릅니다.
 
-## 경로 표현식
+김영한님의 JPA 로드맵을 학습하면서 이 차이를 중심으로 정리했습니다. 아래 `Member`는 회원, `Team`은 팀이며 회원 여러 명이 한 팀에 속하는 모델입니다.
 
-점을 찍어 객체 그래프를 탐색하는 것을 말합니다.
+## 점 하나에도 조인이 생긴다
 
-```
-SELECT m.username -> 상태 필드
-	FROM Member m
-    JOIN m.team t -> 단일 값 연관 필드
-    JOIN m.orders o -> 컬렉션 값 연관 필드
-WHERE t.name = '팀A'
+`m.username`은 회원의 일반 필드를 읽습니다. 반면 `m.team.name`처럼 연관된 객체로 이동하면 SQL에 조인이 필요할 수 있습니다.
+
+```sql
+SELECT m FROM Member m WHERE m.team.name = '팀A'
 ```
 
-### 경로 표현식 용어 정리
+이런 묵시적 연관 조인은 내부 조인으로 처리됩니다. 팀이 없는 회원도 남겨야 한다면 의도를 드러내는 명시적 조인을 사용하는 편이 좋습니다.
 
-- **상태 필드**: 단순히 값을 저장하기 위한 필드
-- **연관 필드**: 연관관계를 위한 필드
-  - **단일 값 연관 필드**: `@ManyToOne`, `@OneToOne`, 대상이 엔티티
-  - **컬렉션 값 연관 필드**: `@OneToMany`, `@ManyToMany`, 대상이 컬렉션
-
-### 단일 값 연관 경로 탐색
-
-- **JPQL**: `SELECT o.member FROM Order o`
-- **SQL**: `SELECT m.* FROM Orders o Inner JOIN Member m on o.member_id = m.id`
-
-### 명시적 조인, 묵시적 조인
-
-- **명시적 조인**: `JOIN` 키워드 직접 사용
-  - `SELECT m FROM Member m JOIN m.team t`
-- **묵시적 조인**: 경로 표현식에 의해 묵시적으로 SQL 조인 발생 (내부 조인만 가능)
-  - `SELECT m.team FROM Member m`
-
-### 경로 탐색을 사용한 묵시적 조인 시 주의사항
-
-- 항상 내부 조인입니다.
-- 컬렉션은 경로 탐색의 끝이며, 명시적 조인을 통해 별칭을 얻어야 합니다.
-- 경로 탐색은 주로 `SELECT`, `WHERE` 절에서 사용하지만 묵시적 조인으로 인해 SQL 의 `FROM` (JOIN) 절에 영향을 줍니다.
-- **가급적이면 묵시적 조인 대신에 명시적 조인을 사용하도록 합니다.**
-- 조인은 SQL 튜닝에 중요한 포인트입니다.
-- 묵시적 조인은 조인이 일어나는 상황을 한눈에 파악하기가 어려우므로 명시적으로 사용합니다.
-
-## Fetch Join
-
-- **실무에서 자주 쓰는 핵심 기능입니다.**
-- SQL 조인의 종류가 아닙니다.
-- JPQL 에서 **성능 최적화**를 위해서 제공하는 기능입니다.
-- 연관된 엔티티나 컬렉션을 **SQL 한 번에 함께 조회**하는 기능입니다.
-- `JOIN FETCH` 명령어를 사용합니다.
-- `[LEFT | INNER] JOIN FETCH 조인경로` 형태입니다.
-
-### 엔티티 페치 조인
-
-회원을 조회하면서 연관된 팀도 함께 조회합니다 (SQL 한 번).
-
-- **[JPQL]**
-
-  ```
-  SELECT m FROM Member m JOIN FETCH m.team
-  ```
-
-- **[SQL]**
-
-  ```
-  SELECT M.*, T.* FROM Member m INNER JOIN Team t ON m.TEAM_ID = t.id
-  ```
-
-### 컬렉션 페치 조인
-
-일대다 컬렉션을 조인하면 SQL 행이 자식 수만큼 늘어납니다. 예를 들어 팀 A에 회원 두 명이 있으면 SQL은 팀 A를 포함하는 두 행을 반환합니다. 엔티티 결과 목록의 중복 제거는 JPA 구현·버전에 따라 확인해야 하며, SQL 행 수가 줄어드는 것과는 다릅니다.
-
-- **[JPQL]**
-
-  ```
-  SELECT t
-  FROM Team t JOIN FETCH t.members
-  WHERE t.name = '팀A'
-  ```
-
-- **[SQL]**
-
-  ```
-  SELECT t.*, m.*
-  FROM Team t
-  INNER JOIN Member m ON T.id = m.TEAM_ID
-  WHERE t.name = '팀A'
-  ```
-
-### 페치 조인과 DISTINCT
-
-- SQL 의 `DISTINCT` 는 중복된 결과를 제거하는 명령입니다.
-- JPQL 의 `DISTINCT` 는 2가지 기능을 제공합니다.
-  1. SQL 에 `DISTINCT` 를 추가합니다.
-  2. 어플리케이션에서 엔티티 중복을 제거합니다 (**컬렉션 페치 조인의 중복 데이터를 해결합니다**).
-  - **하이버네이트 6 부터는 `DISTINCT` 명령어를 사용하지 않아도 어플리케이션에서 중복 제거가 자동으로 적용됩니다.**
-
-```
-SELECT DISTINCT t
-FROM Team t JOIN FETCH t.members
-WHERE t.name = '팀A'
+```sql
+SELECT m FROM Member m LEFT JOIN m.team t
 ```
 
-### 페치 조인과 일반 조인의 차이
+컬렉션은 단일 객체처럼 계속 점을 찍어 탐색할 수 없습니다. `t.members`의 개별 회원을 조건에 쓰려면 `JOIN t.members m`처럼 조인해 별칭을 얻어야 합니다. 명시적으로 조인을 적으면 쿼리의 어느 부분에서 행이 늘거나 제외되는지도 읽기 쉽습니다.
 
-- 페치 조인을 사용할 때만 연관된 엔티티도 함께 **조회(즉시 로딩)** 합니다.
-- **페치 조인은 객체 그래프를 SQL 한 번에 조회하는 개념입니다.**
+## 일반 조인과 fetch join 비교
 
-### 페치 조인의 특징과 한계
+다음 두 JPQL은 모두 회원과 팀을 조인하지만 조회 목적이 다릅니다.
 
-- **페치 조인 대상에는 별칭을 줄 수 없습니다.**
-  - 하이버네이트에서는 가능하지만, 가급적 사용하지 않도록 합니다.
-- Hibernate는 여러 bag 컬렉션의 동시 fetch join을 제한할 수 있습니다(`MultipleBagFetchException`). 모든 종류의 두 컬렉션이 항상 금지되는 것은 아니지만, 가능하더라도 자식 수의 곱으로 행이 늘어날 수 있습니다.
-- **컬렉션 fetch join과 페이징 (`setFirstResult`, `setMaxResults`)을 함께 쓸 때는 DB에서 제한되지 않을 수 있습니다.**
-  - 일대일, 다대일 같은 단일 값 연관 필드들은 페치 조인해도 페이징이 가능합니다.
-  - Hibernate는 설정에 따라 메모리에서 페이징하거나 오류로 거절할 수 있습니다. 메모리 페이징은 전체 조인 결과를 읽는 비용이 있으므로 확인해야 합니다.
-- 연관된 엔티티들은 SQL 한 번으로 조회 가능합니다 — **성능 최적화**.
-- 엔티티에 직접 적용하는 글로벌 로딩 전략보다 우선합니다.
-  - `@OneToMany(fetch = FetchType.LAZY)`
-- 필요한 관계를 조회별로 선택하기 위해 지연 로딩을 출발점으로 삼을 수 있습니다. 실제 매핑과 SQL을 확인합니다.
-- 조회에 따라 fetch join, DTO 프로젝션, batch fetch를 비교합니다. 모든 성능 문제를 fetch join으로 해결하지는 않습니다.
+```sql
+-- 팀을 조회 조건에 사용하고 회원을 반환
+SELECT m FROM Member m JOIN m.team t WHERE t.name = '팀A'
 
-### 페치 조인 정리
+-- 회원을 반환하면서 팀도 함께 로딩
+SELECT m FROM Member m JOIN FETCH m.team
+```
 
-- 모든 것을 페치 조인으로 해결할 수는 없습니다.
-- 페치 조인은 객체 그래프를 유지할 때 사용하면 효과적입니다.
-- 여러 테이블을 조인해서 엔티티가 가진 모양이 아닌 전혀 다른 결과를 내야 하면, 페치 조인보다는 일반 조인을 사용하고 필요한 데이터들만 조회해서 DTO 로 반환하는 것이 효과적입니다.
+첫 번째 쿼리는 일반 조인입니다. 팀을 조건에 사용했다는 사실만으로 회원의 `team` 연관이 초기화됐다고 볼 수 없습니다. 두 번째 쿼리는 fetch join으로, 회원과 팀의 데이터를 함께 읽어 객체 관계를 구성합니다. 회원마다 팀을 사용할 화면이라면 추가 지연 로딩을 줄일 수 있습니다.
 
-## 다형성 쿼리
+반대로 팀 이름과 회원 수만 필요하다면 엔티티 그래프 전체를 가져올 필요가 없습니다. 일반 조인과 DTO 프로젝션으로 필요한 값만 읽는 방법도 비교해야 합니다.
 
-### TYPE
+## 컬렉션을 함께 읽으면 행이 늘어난다
 
-조회 대상을 특정 자식으로 한정합니다. (예: `Item` 중에 `Book`, `Movie` 를 조회)
+팀 A에 회원 두 명이 있을 때 다음 조회의 SQL 결과에는 팀 A가 두 행에 나타납니다.
 
-- **[JPQL]**
+```sql
+SELECT t FROM Team t JOIN FETCH t.members WHERE t.name = '팀A'
+```
 
-  ```
-  SELECT i FROM Item i
-  WHERE type(i) IN (Book, Movie)
-  ```
+회원 열이 서로 다르므로 SQL의 `DISTINCT`를 붙인다고 두 SQL 행이 하나로 줄어드는 것은 아닙니다. 엔티티 결과 목록에서 팀 중복을 없애는 처리와 DB에서 읽은 행 수를 구분해야 합니다. Hibernate 6은 fetch join으로 생기는 엔티티 결과 중복을 자동으로 제거하지만, 조인 자체의 데이터 양은 남습니다.
 
-- **[SQL]**
+이 차이는 페이징에서 중요합니다. “팀 10개”를 원하는데 SQL 행에 제한을 걸면 회원 수에 따라 일부 팀의 회원만 읽을 수 있습니다. Hibernate는 컬렉션 fetch join의 페이징을 메모리에서 처리하거나 설정에 따라 오류로 거절할 수 있습니다. 부모 ID를 먼저 페이지 단위로 조회하고 연관을 추가 조회하거나, batch fetch를 사용하는 방법을 검토해야 합니다.
 
-  ```
-  SELECT i.* FROM Item i
-  WHERE i.DTYPE in ('B', 'M')
-  ```
+컬렉션 두 개를 함께 조인하면 자식 수의 곱만큼 행이 늘 수도 있습니다. Hibernate의 여러 bag 컬렉션 fetch 제한도 있으므로, N+1을 없애려고 모든 연관을 한 쿼리에 넣는 접근은 피하는 편이 좋습니다. 단일 값 연관을 fetch join하는 경우와 컬렉션을 가져오는 경우를 나눠 봐야 합니다.
 
-### TREAT
+## 상속 타입을 조건으로 쓰는 경우
 
-자바의 타입 캐스팅과 유사합니다. 상속 구조에서 부모 타입을 특정 자식 타입으로 다룰 때 사용합니다.
+`Item` 아래에 `Book`과 `Movie`가 있다면 `TYPE`으로 하위 타입을 고를 수 있습니다. `TREAT`는 특정 하위 타입의 속성에 접근할 때 사용합니다.
 
-- 지원 위치와 생성 SQL은 표준 버전·구현체를 확인합니다. 아래는 WHERE에서 하위 타입의 속성에 접근하는 예이며 SQL은 SINGLE_TABLE 매핑을 가정한 설명용입니다.
-- 예: 부모인 `Item` 과 자식 `Book`.
-- **[JPQL]**
+```sql
+SELECT i FROM Item i WHERE TYPE(i) IN (Book, Movie)
+SELECT i FROM Item i WHERE TREAT(i AS Book).author = 'kim'
+```
 
-  ```
-  SELECT i FROM Item i
-  WHERE TREAT(i as Book).author = 'kim'
-  ```
+생성 SQL은 상속 매핑과 JPA 구현에 따라 달라집니다. `SINGLE_TABLE`에서는 구분 컬럼을 활용할 수 있지만, 다른 상속 전략에서도 같은 SQL이 나온다고 보면 안 됩니다.
 
-- **[SQL]**
+## 여러 행을 한 번에 수정한 뒤에는 다시 조회하기
 
-  ```
-  SELECT i.* FROM Item i
-  WHERE i.DTYPE = 'B' and i.author = 'kim'
-  ```
-
-## 엔티티 직접 사용
-
-JPQL 에서 엔티티를 직접 사용하면 SQL 에서 해당 엔티티의 기본 키 값을 사용합니다.
-
-- **[JPQL]**
-
-  ```
-  SELECT COUNT(m.id) FROM Member m //엔티티의 아이디를 사용
-  SELECT COUNT(m) FROM Member m //엔티티를 직접 사용
-  ```
-
-- **[SQL] (JPQL 둘 다 같은 다음 SQL 실행)**
-
-  ```
-  SELECT COUNT(m.id) AS cnt FROM Member m
-  ```
-
-## Named 쿼리
-
-- 미리 정의해서 이름을 부여해두고 사용하는 JPQL 입니다.
-- 정적 쿼리입니다.
-- 어노테이션, XML 에 정의합니다.
-- 어플리케이션 로딩 시점에 초기화 후 재사용합니다.
-- **어플리케이션 로딩 시점에 쿼리를 검증**합니다.
-
-### Named 쿼리 환경에 따른 설정
-
-- XML 이 항상 우선권을 가집니다.
-- 어플리케이션 운영 환경에 따라 다른 XML 을 배포할 수 있습니다.
-
-## 벌크 연산
-
-재고가 10개 미만은 모든 상품의 가격을 10% 상승하려면 어떻게 해야 할까요?
-
-JPA 변경 감지 기능으로 실행하려면 너무 많은 쿼리가 실행됩니다.
-
-1. 재고가 10개 미만인 상품을 리스트로 조회합니다.
-2. 상품 엔티티의 가격을 10% 증가합니다.
-3. 트랜잭션 커밋 시점에 변경 감지가 동작합니다.
-
-변경된 데이터가 100건이라면 100번의 UPDATE SQL 이 실행됩니다.
-
-### 벌크 연산 예제
-
-쿼리 한 번으로 여러 테이블 로우를 변경합니다 (엔티티).
-
-- **`executeUpdate()`** 의 결과는 영향받은 엔티티 수를 반환합니다.
-- **UPDATE, DELETE** 를 지원합니다.
-- **INSERT** (INSERT INTO .. SELECT, 하이버네이트 지원) 도 가능합니다.
+재고가 10개 미만인 상품 가격을 일괄 변경한다고 가정해 보겠습니다. 엔티티를 모두 읽어 하나씩 바꾸는 대신 벌크 UPDATE를 사용할 수 있습니다.
 
 ```java
-String qlString = "UPDATE Product p " +
-				  "SET p.price = p.price * 1.1 " +
-                  "WHERE p.stockAmount < :stockAmount";
-
-int resultCount = em.createQuery(qlString)
-				.setParameter("stockAmount", 10)
-                .executeUpdate();
+// 활성 트랜잭션 안에서 실행
+em.flush();
+int changed = em.createQuery(
+    "UPDATE Product p SET p.price = p.price * 1.1 WHERE p.stockAmount < :stock"
+).setParameter("stock", 10).executeUpdate();
+em.clear();
 ```
 
-### 벌크 연산 주의
-
-- 벌크 연산은 활성 트랜잭션 안에서 실행하며 영속성 컨텍스트를 우회합니다. 미반영 변경이 있으면 실행 전 flush하고, 실행 후 clear한 다음 다시 조회합니다. clear부터 하면 아직 저장하지 않은 변경을 잃을 수 있습니다.
-  - 벌크 연산을 먼저 실행합니다.
-  - **벌크 연산 수행 후 영속성 컨텍스트를 초기화**합니다.
+벌크 연산은 영속성 컨텍스트의 엔티티 상태를 거치지 않고 DB를 수정합니다. 이미 메모리에 상품을 올려 두었다면 가격이 이전 값으로 남을 수 있습니다. 미반영 변경은 먼저 `flush()`하고, 벌크 수정 뒤에는 `clear()`한 다음 필요한 데이터를 다시 읽는 이유입니다. 저장하지 않은 변경이 있는데 먼저 `clear()`하면 그 변경을 잃을 수 있으므로 순서도 중요합니다.

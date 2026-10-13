@@ -1,20 +1,22 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-18T15:57:22+09:00
-modDatetime: 2026-10-06T18:18:44+09:00
-title: "프로젝션과 결과 반환, 동적쿼리, 벌크 쿼리"
+modDatetime: 2026-10-13T15:51:36+09:00
+title: "QueryDSL DTO 조회와 동적 조건 만들기"
 slug: "querydsl-projection-dynamic-bulk"
 featured: false
 draft: false
 tags: ["학습노트", "querydsl", "jpa", "dynamic-query", "java"]
-description: "QueryDSL 의 프로젝션 종류, 동적 쿼리 두 가지 방식, 벌크 연산과 SQL 함수 호출까지 한 번에 정리합니다."
+description: "회원 목록에 이름과 나이만 필요할 때 DTO로 바로 조회할 수 있습니다. 매핑 방식의 차이와 선택적인 검색 조건, 벌크 수정 후 재조회까지 살펴봅니다."
 ---
 
-> 김영한님의 JPA 로드맵을 따라 학습하면서 정리한 노트입니다.
+회원 검색 API가 이름과 나이만 반환한다면 엔티티 전체를 가져온 뒤 다시 DTO로 옮길 필요가 없을 수 있습니다. QueryDSL에서 필요한 필드를 직접 DTO로 조회하는 방법과, 검색값이 있을 때만 조건을 넣는 방법을 정리했습니다.
+
+김영한님의 JPA 로드맵을 학습한 QueryDSL 5.x 예제입니다. 준비된 `JPAQueryFactory`와 Member 엔티티, Q 타입을 사용하며 각 코드는 독립된 조각입니다.
 
 ## 프로젝션 결과 반환
 
-**프로젝션**은 `SELECT` 대상을 지정하는 것입니다.
+SELECT에서 무엇을 가져올지 지정하는 것을 프로젝션이라고 합니다. 이름만 가져오면 문자열 목록으로, 이름과 나이를 함께 가져오면 두 값을 담을 객체로 받아야 합니다.
 
 ### 프로젝션 대상이 하나
 
@@ -80,7 +82,10 @@ List<MemberDto> result = queryFactory
 
 **별칭이 다를 경우**
 
+DTO 필드가 username 대신 name이면 조회 표현식에 별칭을 맞춥니다. 아래 최대 나이 서브쿼리는 SELECT 위치의 서브쿼리를 지원하는 Hibernate 확장을 전제로 합니다. `UserDto`에는 name과 age 필드 및 기본 생성자가 필요합니다.
+
 ```java
+QMember memberSub = new QMember("memberSub");
 List<UserDto> fetch = queryFactory
     .select(Projections.fields(UserDto.class,
         member.username.as("name"),
@@ -134,7 +139,9 @@ List<MemberDto> result = queryFactory
 - 생성된 Q 타입의 생성자를 통해 인자 타입을 컴파일 때 확인할 수 있습니다. 쿼리의 의미나 DB 실행 성공까지 보장하는 것은 아닙니다.
 - 다만 DTO 에 QueryDSL 어노테이션을 유지해야 한다는 점은 트레이드오프입니다.
 
-## 동적 쿼리 - BooleanBuilder
+## 사용자가 입력한 검색 조건만 추가하기
+
+이름만 입력한 요청에 나이 조건까지 붙이면 원하는 회원을 찾지 못할 수 있습니다. 아래 두 구현은 null을 미입력으로 다룹니다. 빈 문자열과 공백을 어떻게 취급할지는 API의 입력 정책에 맞춰 추가해야 합니다.
 
 ### BooleanBuilder 방식
 
@@ -154,7 +161,7 @@ private List<Member> searchMember1(String usernameCond, Integer ageCond) {
 }
 ```
 
-### WHERE 다중 파라미터 (권장)
+### 조건을 메서드로 나누기
 
 ```java
 private List<Member> searchMember2(String usernameCond, Integer ageCond) {
@@ -175,7 +182,9 @@ private BooleanExpression ageEq(Integer ageCond) {
 
 `where`의 null 인자는 무시됩니다. 조건 조합을 재사용하기 좋지만 모든 조건이 null이면 전체 조회가 될 수 있습니다. 검색 API의 빈 조건 정책과 최대 조회 범위를 먼저 정합니다. 같은 회원·팀 검색을 두 방식으로 비교한 예시는 [동적 검색 쿼리](/posts/pure-jpa-with-querydsl/)에 있습니다.
 
-## 수정, 삭제 벌크 연산
+## 여러 회원을 한 번에 바꾼 뒤 메모리 값 확인하기
+
+목록 조회와 달리 여러 행을 일괄 수정할 때는 벌크 쿼리를 사용할 수 있습니다. 다음은 문법을 설명하는 개별 예제이며 실제 업무 정책을 표현한 것은 아닙니다.
 
 **대량 데이터 수정**
 
@@ -216,7 +225,9 @@ long count = queryFactory
 
 위 벌크 예시는 활성 트랜잭션 안에서 실행합니다. 미반영 엔티티 변경이 있다면 먼저 `em.flush()`하고, 벌크 실행 뒤 `em.clear()`와 재조회로 오래된 메모리 값을 사용하지 않게 합니다. clear는 저장되지 않은 변경을 버릴 수 있으므로 순서를 바꾸지 않습니다.
 
-## SQL Function 호출하기
+## 기본 표현식으로 부족할 때 DB 함수 사용하기
+
+사용자명 일부를 치환하는 함수처럼 DB 기능이 필요할 수 있습니다. 먼저 QueryDSL에 해당 표현식이 있는지 확인하고, 직접 함수 템플릿을 쓴다면 선택한 DB와 JPA 구현이 그 함수를 지원하는지도 확인합니다.
 
 **Replace 함수**
 

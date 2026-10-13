@@ -1,160 +1,69 @@
 ---
 author: "luca"
 pubDatetime: 2023-05-24T22:38:06+09:00
-modDatetime: 2026-10-06T18:18:44+09:00
-title: "연관관계 매핑"
+modDatetime: 2026-10-13T15:42:49+09:00
+title: "JPA 연관관계의 주인과 양방향 참조"
 slug: "jpa-association-mapping"
 featured: false
 draft: false
 tags: ["학습노트", "jpa", "association", "relationship", "orm"]
-description: "테이블 중심 설계의 한계, 단방향·양방향 연관관계, 연관관계의 주인과 mappedBy 까지 객체 지향 매핑의 핵심을 정리한 학습 노트입니다."
+description: "팀에 회원을 추가했는데 외래키가 저장되지 않을 수 있습니다. 회원과 팀 예제로 객체의 참조와 DB 관계를 누가 변경하는지 구분합니다."
 ---
 
-> 김영한님의 JPA 로드맵을 따라 학습하면서 정리한 노트입니다.
+팀에 새 회원을 넣으려고 `team.getMembers().add(member)`를 호출했다고 가정해 보겠습니다. Java 코드에서 팀의 회원 목록은 늘어났는데, 저장 후 DB를 보면 회원의 팀 ID가 비어 있을 수 있습니다. 양방향 매핑에서 어느 쪽이 외래키를 관리하는지에 따라 이런 차이가 생깁니다.
 
-## 테이블을 중심으로 엔티티를 만들 경우
+김영한님의 JPA 로드맵을 학습하면서 회원과 팀 예제로 정리했습니다. 회원 여러 명이 한 팀에 속하고, DB에서는 회원 테이블에 `team_id` 외래키가 있는 관계입니다. 아래 코드는 매핑에 필요한 부분만 남겼으며 생성자와 접근자는 생략했습니다.
 
-외래키를 ID 값으로만 가지고 있으면 관련 객체를 직접 조회해야 합니다. 객체 참조를 매핑하는 방법과 필요한 시점에 ID로 조회하는 방법은 각각 결합도와 조회 비용이 다릅니다. 아래 코드는 매핑에 필요한 부분만 남겼으며 기본 생성자·접근자 등은 생략했습니다.
+## ID만 저장하는 방식과 객체를 참조하는 방식
+
+회원이 `Long teamId`만 가지고 있다면 팀 이름을 읽을 때 그 ID로 팀을 따로 조회해야 합니다. 팀 객체를 연관관계로 매핑하면 코드에서는 참조를 따라갈 수 있습니다.
 
 ```java
 @Entity
 public class Member {
     @Id @GeneratedValue
-    @Column(name = "member_id")
-    private Long id;
-    // ...
-}
-
-@Entity
-public class Order {
-    @Id @GeneratedValue
-    @Column(name = "order_id")
-    private Long id;
-
-    @Column(name = "member_id")
-    private Long memberId;
-    // ...
-}
-```
-
-이 예시에서는 주문과 회원을 따로 조회합니다. 객체 참조로 바꾸더라도 지연 로딩을 사용하면 추가 SQL이 발생할 수 있으므로, 매핑만으로 쿼리 수가 줄어든다고 보지는 않습니다.
-
-```java
-Order order = em.find(Order.class, 1L);
-Long memberId = order.getMemberId();
-Member findMember = em.find(Member.class, memberId);
-```
-
-객체 참조를 사용하면 다음과 같이 바뀝니다.
-
-```java
-@Entity
-public class Order {
-    @Id @GeneratedValue
-    @Column(name = "order_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
-    // ...
-}
-
-// 직접 접근
-Member findMember = order.getMember();
-```
-
-## ID로 연결할지 객체로 탐색할지
-
-ID만 보관하면 객체 그래프를 바로 탐색할 수는 없지만, 관련 엔티티를 언제 읽을지 호출부에서 명확히 정할 수 있습니다. 객체 참조는 탐색을 편하게 만드는 대신 로딩 시점과 연관관계 관리 책임을 고려해야 합니다. ID를 사용했다는 사실만으로 설계나 UML이 잘못됐다고 판단하지 않습니다.
-
-## 연관관계가 필요한 이유
-
-- **테이블은 외래키와 `JOIN`** 으로 연관된 레코드를 찾습니다.
-- **객체는 참조**를 통해 연관된 객체에 접근합니다.
-
-## 단방향 연관관계 매핑
-
-```java
-@Entity
-public class Member {
-    @ManyToOne
-    @JoinColumn(name = "TEAM_ID")
+    @JoinColumn(name = "team_id")
     private Team team;
-    // ...
 }
 ```
 
-## 양방향 매핑
+이제 `member.getTeam()`으로 팀에 접근할 수 있습니다. 다만 객체 참조로 바꿨다고 SQL이 항상 줄어드는 것은 아닙니다. 지연 로딩한 팀의 데이터를 읽는 시점에 추가 조회가 발생할 수 있습니다.
 
-데이터베이스 테이블은 외래키 하나로 양방향 관계를 표현하지만, 객체는 양쪽 모두에 명시적인 참조가 필요합니다.
+ID만 보관하면 조회 시점을 호출부에서 명확하게 정하기 쉽고, 객체 참조는 탐색이 편한 대신 로딩과 관계 관리가 필요합니다. 어느 한쪽을 무조건 잘못된 설계로 보기보다 실제 사용 방식에 맞춰 선택해야 합니다.
+
+## 팀에서 회원 목록도 읽고 싶다면
+
+Member에 Team 참조만 있으면 회원에서 팀으로 이동할 수 있습니다. 팀에서 회원으로도 이동하려면 반대쪽 참조를 추가합니다.
 
 ```java
 @Entity
 public class Team {
+    @Id @GeneratedValue
+    private Long id;
+
     @OneToMany(mappedBy = "team")
     private List<Member> members = new ArrayList<>();
 }
 ```
 
-## 연관관계의 주인과 mappedBy
+DB는 외래키 하나로 회원과 팀을 조인할 수 있지만, 객체는 양쪽에 참조가 각각 있어야 합니다. `mappedBy = "team"`은 Member의 `team` 필드가 이 관계의 외래키를 관리한다는 뜻입니다. 여기서 말하는 연관관계의 주인은 업무상 더 중요한 객체라는 의미가 아닙니다.
 
-- **객체 관계**: 단방향 연결 2개로 양방향을 흉내냅니다.
-- **테이블 관계**: 외래키 1개로 양방향 연결을 표현합니다.
+이 다대일·일대다 양방향 관계에서는 외래키가 있는 Member 쪽이 주인입니다. `team.members`만 바꿔서는 회원 테이블의 외래키가 갱신되지 않습니다.
 
-**양방향 매핑 규칙**
-
-- 주인만 외래키를 관리합니다 (생성, 수정).
-- 주인이 아닌 쪽의 변경만으로는 이 관계의 FK가 갱신되지 않습니다. 컬렉션 자체를 수정할 수 없다는 뜻은 아닙니다.
-- 주인은 `mappedBy`를 사용하지 않습니다.
-- 주인이 아닌 쪽은 `mappedBy`로 주인을 지정합니다.
-
-**여기서 다루는 다대일·일대다 양방향 관계에서는 외래키가 있는 다대일 쪽이 주인입니다.**
+## DB 관계와 메모리의 목록을 함께 맞추기
 
 ```java
-// Member 가 주인 (TEAM_ID 를 가짐)
-@Entity
-public class Member {
-    @ManyToOne
-    @JoinColumn(name = "TEAM_ID")
-    private Team team;
-}
+member.setTeam(team);          // 외래키를 관리하는 쪽 변경
+team.getMembers().add(member); // 현재 메모리의 반대쪽 참조 변경
 ```
 
-## 양방향 매핑 시 많이 하는 실수들
+첫 줄만 있으면 외래키는 갱신할 수 있어도 이미 읽어 둔 Team의 목록에 회원이 자동으로 추가되지는 않습니다. 두 번째 줄만 있으면 목록은 바뀌어도 외래키가 저장되지 않습니다. 두 참조가 다른 상태를 가리키지 않도록 함께 관리해야 합니다.
 
-### 주인이 아닌 쪽에만 값을 설정
+연결 작업을 한 메서드로 묶으면 한쪽을 빠뜨리기 어렵습니다. 다만 처음 팀을 정하는 것과 다른 팀으로 옮기는 것은 다릅니다. 이동할 때는 이전 팀의 목록에서 회원을 제거하는 작업도 필요합니다. 새 팀에 추가하는 두 줄만으로 모든 관계 변경을 처리했다고 보면 안 됩니다.
 
-**잘못된 예**
+양방향 참조를 따라가는 `toString()`이나 JSON 직렬화도 조심해야 합니다. Member가 Team을 출력하고 Team이 다시 Member를 출력하면 순환할 수 있습니다. 응답에 필요한 값은 DTO로 만드는 편이 관계를 무작정 노출하지 않기 쉽습니다.
 
-```java
-team.getMembers().add(member);  // 메모리만 변경, 이 코드만으로 FK는 갱신되지 않음
-```
-
-**올바른 예**
-
-```java
-member.setTeam(team);  // 주인 쪽
-```
-
-### 순수 객체 상태를 위해 양쪽 모두 설정
-
-`team.getMembers().add(member)`는 메모리의 컬렉션을 바꾸지만 FK를 쓰는 `member.team`은 바꾸지 않습니다. 반대로 `member.setTeam(team)`만 호출하면 DB의 FK는 갱신할 수 있어도 이미 로드된 `team.members`는 자동으로 추가되지 않습니다. 두 객체 참조를 함께 관리해야 메모리와 저장 결과가 어긋나지 않습니다. 아래는 최초 연결 예시이며, 팀을 변경할 때는 이전 팀 컬렉션에서 제거하는 처리도 필요합니다.
-
-```java
-public void setTeam(Team team) {
-    this.team = team;
-    team.getMembers().add(this);
-}
-```
-
-### 양방향 관계의 무한 루프 주의
-
-- `toString()`, `lombok`, JSON 라이브러리 사용에 주의합니다.
-- Entity 객체를 JSON으로 직접 반환하지 말고 DTO를 사용합니다.
-
-## 양방향 매핑 정리
-
-- **단방향 매핑만으로 시작합니다.**
-- 양방향 관계는 필요할 때에만 추가합니다.
-- 양방향 추가는 데이터베이스 스키마에 영향을 주지 않습니다.
+팀에서 회원을 탐색할 필요가 없다면 처음부터 양방향을 만들 필요는 없습니다. 단방향으로 시작하고 실제 조회 요구가 생길 때 반대쪽 참조를 추가해도 됩니다. 같은 외래키 관계에 객체 탐색 방향을 더하는 것이므로, 이를 위해 새 외래키가 하나 더 필요한 것도 아닙니다.

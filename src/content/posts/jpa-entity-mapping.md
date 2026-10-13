@@ -1,16 +1,18 @@
 ---
 author: "luca"
 pubDatetime: 2023-05-23T18:26:14+09:00
-modDatetime: 2026-10-06T18:18:44+09:00
-title: "JPA 엔티티 매핑: 컬럼 제약과 식별자 생성 시점 구분하기"
+modDatetime: 2026-10-13T15:44:59+09:00
+title: "JPA 컬럼 매핑과 ID 생성 전략"
 slug: "jpa-entity-mapping"
 featured: false
 draft: false
 tags: ["학습노트", "jpa", "entity", "mapping"]
-description: "@Entity·@Table·@Column 부터 기본 키 생성 전략(IDENTITY·SEQUENCE·TABLE)까지 JPA 엔티티 매핑의 핵심을 정리한 학습 노트입니다."
+description: "상품 가격의 자릿수를 정하는 설정과 값을 검증하는 로직은 다릅니다. 상품 엔티티를 예로 컬럼 제약과 ID 생성 시점을 살펴봅니다."
 ---
 
-김영한님의 JPA 로드맵을 따라 정리한 학습 노트입니다. 엔티티 매핑에서 헷갈리기 쉬운 것은 Java 필드의 의미, DB 제약, 식별자를 얻는 시점이 서로 다른 설정이라는 점입니다. 아래 설명은 Jakarta Persistence 3.1과 Hibernate 6 계열을 기준으로 합니다.
+상품의 이름과 가격을 저장하려고 엔티티를 만들면 `@Column` 설정부터 채우게 됩니다. 그런데 `nullable = false`를 붙이는 일, 입력한 가격을 검증하는 일, 이미 존재하는 DB 테이블을 변경하는 일은 각각 다릅니다. 어노테이션 하나가 이 작업을 모두 대신하지는 않습니다.
+
+김영한님의 JPA 로드맵을 학습하며 상품 엔티티를 예로 매핑과 ID 생성 전략을 정리했습니다. 아래 설명은 Jakarta Persistence 3.1과 Hibernate 6 계열을 기준으로 합니다.
 
 ## 필드 선언과 DB 제약을 함께 읽기
 
@@ -43,7 +45,7 @@ public class CatalogItem {
 
 `@Temporal`은 `java.util.Date`·`Calendar`용입니다. `LocalDate`, `LocalDateTime` 같은 지원 타입에는 붙이지 않습니다. `@Transient` 필드는 JPA 저장 대상에서 빠집니다.
 
-## ID를 얻는 시점과 INSERT·commit은 다르다
+## 저장한 객체의 ID는 언제 정해질까
 
 | 전략      | 식별자를 얻는 방식                 | 확인할 비용                  |
 | --------- | ---------------------------------- | ---------------------------- |
@@ -55,7 +57,7 @@ public class CatalogItem {
 
 IDENTITY에서는 ID를 알아야 하므로 활성 트랜잭션의 일반적인 persist 흐름에서 INSERT가 일찍 실행될 수 있습니다. 반면 SEQUENCE는 ID를 먼저 확보하고 INSERT를 flush까지 미룰 수 있습니다. 어느 경우든 SQL이 실행됐다는 사실과 트랜잭션이 commit됐다는 사실은 다릅니다.
 
-`allocationSize = 50`은 한 번의 호출로 시퀀스 값을 50번 읽어 배열에 보관한다는 뜻이 아닙니다. Hibernate의 pooled 계열 최적화는 식별자 구간을 확보한 뒤 여러 ID를 메모리에서 생성해 DB 왕복을 줄입니다. 정확한 알고리즘과 sequence의 increment 일치는 설정에 따라 확인해야 합니다. 중단·재시작으로 번호가 비는 것은 허용해야 하며 업무상 연속 번호로 쓰기에는 맞지 않습니다.
+예를 들어 SEQUENCE 설정에 `allocationSize = 50`이 있으면 DB와 통신하는 횟수를 줄일 수 있습니다. 이것은 한 번의 호출로 시퀀스 값을 50번 읽어 배열에 보관한다는 뜻이 아닙니다. Hibernate의 pooled 계열 최적화는 식별자 구간을 확보한 뒤 여러 ID를 메모리에서 생성해 DB 왕복을 줄입니다. 정확한 알고리즘과 sequence의 increment 일치는 설정에 따라 확인해야 합니다. 중단·재시작으로 번호가 비는 것은 허용해야 하며 업무상 연속 번호로 쓰기에는 맞지 않습니다.
 
 기본 sequence나 키 테이블 이름도 JPA가 `hibernate_sequence` 등으로 고정한 값은 아닙니다. 구현체·버전별 생성 규칙에 기대기보다 이름이 중요하면 매핑과 마이그레이션에 명시합니다.
 

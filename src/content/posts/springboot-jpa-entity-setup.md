@@ -1,49 +1,43 @@
 ---
 author: "luca"
 pubDatetime: 2023-05-18T11:55:58+09:00
-modDatetime: 2026-10-06T18:18:44+09:00
-title: "SpringBoot JPA로 Entity 클래스 구성하기"
+modDatetime: 2026-10-13T15:47:36+09:00
+title: "JPA 엔티티의 공통 필드와 동등성 정하기"
 slug: "springboot-jpa-entity-setup"
 featured: false
 draft: false
 tags: ["학습노트", "spring-boot", "jpa", "entity", "setup"]
-description: "JPA Entity 클래스를 구성할 때 자주 사용하는 어노테이션, Pattern Matching, Auditing 필드 분리 방법을 정리합니다."
+description: "새 엔티티에 어노테이션을 복사하기 전에 생각할 선택들입니다. 작성 정보의 재사용과 저장 전후 ID 비교를 게시글 예제로 살펴봅니다."
 ---
 
-> Spring Boot 에서 JPA Entity 클래스를 작성할 때 챙겨야 할 어노테이션과 설계 선택지를 짧게 정리하는 글입니다.
+게시글 엔티티를 만들 때 기존 클래스에서 어노테이션과 `equals()`를 복사하면 빠르게 시작할 수 있습니다. 하지만 새 게시글과 저장된 게시글을 같은 방식으로 비교해도 되는지, 댓글을 어디까지 함께 관리할지 같은 선택까지 그대로 가져오게 됩니다.
 
-## 주요 어노테이션과 설정
+클래스의 기본 형태를 만들 때 구분해 볼 부분을 정리했습니다. 필수 매핑과 편의 기능을 나눠 보면 불필요한 설정을 복사하는 일을 줄일 수 있습니다.
 
-Entity 클래스 작성 시 자주 등장하는 어노테이션과 설정을 정리합니다.
+## 어노테이션마다 하는 일이 다르다
 
-- **`@Getter`, `@ToString`** — 편의성을 위한 롬복 어노테이션
-- **`@Table(indexes = {...})`** — 빠른 검색을 위한 인덱스 설정
-- **`@EntityListeners(AuditingEntityListener.class)`** — Auditing 활성화
-- **`@Id @GeneratedValue(strategy = GenerationType.IDENTITY)`** — 기본 키 설정
-- **`@OneToMany(mappedBy = "article", cascade = CascadeType.ALL)`** — 양방향 관계 설정
-- **`@CreatedDate`, `@CreatedBy`, `@LastModifiedDate`, `@LastModifiedBy`** — 감시 필드
+`@Entity`와 `@Id`는 영속성 매핑을 정합니다. `@GeneratedValue`는 식별자 생성 전략이며, IDENTITY를 선택하면 DB INSERT 결과로 ID를 받습니다. `@Table(indexes = ...)`는 스키마 생성에 쓸 인덱스 정보를 표현하지만 운영 DB에 인덱스를 배포하는 절차를 대신하지는 않습니다.
 
-## Pattern Matching (Java 16 정식 기능)
+Lombok의 `@Getter`나 `@ToString`은 Java 코드를 생성하는 편의 기능입니다. 특히 양방향 연관을 모두 `toString()`에 포함하면 서로를 반복해서 출력하거나 불필요한 지연 로딩을 일으킬 수 있습니다. 엔티티에 붙일 때는 출력할 필드를 고르는 편이 좋습니다.
 
-Java 14·15에서는 preview였고 Java 16에서 정식 기능이 됐습니다. 기존 `instanceof` 후 명시적 캐스팅을 하던 코드 대신 직접 변수를 선언할 수 있습니다. [JEP 394](https://openjdk.org/jeps/394)
+댓글 관계의 `mappedBy`와 `cascade`도 함께 구분해야 합니다. 전자는 외래키를 관리하는 반대편 필드를 가리키고, 후자는 저장·삭제 등의 작업을 연관 객체에 전파합니다. 양방향 관계를 만들었다고 반드시 모든 작업을 전파해야 하는 것은 아닙니다.
+
+## 작성·수정 정보는 어떻게 재사용할까
+
+여러 엔티티에 작성일·수정일이 반복된다면 `@MappedSuperclass`로 공통 매핑을 상속하거나, `@Embedded`로 값 객체를 포함할 수 있습니다. 둘 다 공통 필드를 다루는 방법이며, 상속이 더 순수하거나 포함이 항상 더 좋은 방식으로 정해져 있지는 않습니다. 클래스 구조와 실제 사용 방식에 맞춰 선택합니다.
+
+필드만 분리했다고 값이 자동으로 채워지는 것은 아닙니다. `@EnableJpaAuditing`, 엔티티 리스너와 `@CreatedDate` 같은 설정을 함께 준비해야 합니다. 사용자까지 기록한다면 현재 작업 주체를 제공하는 `AuditorAware`도 필요합니다. 자세한 연결은 [Auditing 설정](/posts/jpa-auditing/)에 정리했습니다.
+
+## 저장 전 두 객체의 ID가 모두 null이라면
+
+DB에서 ID를 생성하는 새 게시글 두 개를 만들면 저장 전에는 둘 다 ID가 null일 수 있습니다. ID 값만 무조건 비교해 같다고 처리하면 서로 다른 두 게시글이 같은 객체로 취급됩니다. 저장 후 ID가 생기며 hash 값이 달라진다면 이미 HashSet에 넣은 객체를 찾지 못하는 문제도 생길 수 있습니다.
+
+Java 16부터 정식 지원하는 instanceof 패턴 매칭은 타입 확인과 캐스팅을 줄여 줍니다.
 
 ```java
 if (!(o instanceof Article article)) return false;
 ```
 
-`instanceof` 와 캐스팅을 한 번에 처리하기 때문에 `equals` 같은 메서드에서 보일러플레이트가 줄어듭니다.
+하지만 이 문법이 엔티티의 동등성 기준을 정해 주지는 않습니다. Hibernate 프록시와의 비교, 불변 자연키의 존재, 저장 전 객체를 컬렉션 키로 사용할지까지 고려해야 합니다. 같은 영속성 컨텍스트의 인스턴스 동일성과 애플리케이션의 `equals()` 정책도 별개입니다. 문법 자체의 설명은 [JEP 394](https://openjdk.org/jeps/394)를 참고했습니다.
 
-## Auditing Field 분리 방법
-
-생성·수정 일시 같은 감시 필드를 반복해서 적기 어려우므로 분리하는 두 가지 접근이 있습니다.
-
-1. **`@Embedded`** — 필드로 별도 클래스 포함
-2. **`@MappedSuperclass`** — 상속을 통한 중복 필드 통합
-
-상속 방식이 데이터베이스 테이블 구조와 가깝게 매핑되어 편합니다. 다만 도메인 모델의 순수성을 중시한다면 `@Embedded` 가 더 자연스러우니, 팀 차원에서 한 가지를 정해두는 편이 좋습니다.
-
-## equals / hashCode
-
-DB 생성 ID로 동등성을 구현할 때는 저장 전 `id == null`인 서로 다른 객체를 같다고 취급하지 않아야 합니다. 또한 저장 후 ID가 생기며 hash 값이 바뀌면 이미 HashSet에 넣은 객체를 찾지 못할 수 있습니다. Hibernate 프록시와 일반 객체의 클래스 비교도 검토 대상입니다.
-
-따라서 ID만 비교하는 코드를 일괄 적용하기보다, 불변 자연키가 있는지·저장 전 객체를 컬렉션 키로 쓰는지·준영속 객체끼리 비교하는지를 먼저 정합니다. 영속성 컨텍스트의 인스턴스 동일성과 애플리케이션의 `equals` 정책은 별개의 문제입니다.
+결국 엔티티 기본 코드는 복사할 수 있어도 식별과 생명주기 정책까지 자동으로 같아지는 것은 아닙니다. 게시글을 언제 비교하고 댓글을 누가 소유하는지 정한 다음 필요한 매핑만 넣는 편이 의도를 읽기 쉽습니다.

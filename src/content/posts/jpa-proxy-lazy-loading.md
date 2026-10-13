@@ -1,101 +1,47 @@
 ---
 author: "luca"
 pubDatetime: 2023-06-07T21:49:07+09:00
-modDatetime: 2026-10-06T18:18:44+09:00
-title: "JPA 프록시, 지연로딩, 고아 객체"
+modDatetime: 2026-10-13T15:47:36+09:00
+title: "JPA 지연 로딩과 엔티티 삭제 옵션 이해하기"
 slug: "jpa-proxy-lazy-loading"
 featured: false
 draft: false
 tags: ["학습노트", "jpa", "proxy", "lazy-loading", "orphan-removal"]
-description: "JPA 프록시 동작 원리와 지연·즉시 로딩 선택, 영속성 전이와 고아 객체 옵션까지 한 번에 정리한 학습 노트입니다."
+description: "회원 목록에 팀 이름을 붙이면 쿼리가 더 나갈 수 있습니다. 프록시가 데이터를 읽는 시점과 cascade·orphanRemoval이 삭제를 처리하는 조건을 구분합니다."
 ---
 
-> 김영한님의 JPA 로드맵을 따라 학습하면서 정리한 노트입니다.
+회원 이름만 보여 주는 화면과 팀 이름까지 보여 주는 화면은 필요한 데이터가 다릅니다. 그런데 회원을 조회할 때마다 팀도 모두 읽는다면 첫 화면에는 필요 없는 조회가 생깁니다. JPA의 지연 로딩은 이런 연관 데이터를 사용하는 시점까지 조회를 미루는 데 쓰입니다.
 
-## 프록시
+김영한님의 JPA 로드맵을 학습하면서 정리했습니다. 프록시 설명은 Hibernate의 일반적인 서브클래스 프록시를 기준으로 하며, bytecode enhancement를 사용하는 방식과는 구분합니다.
 
-### 프록시 기초
+## 참조를 얻는 것과 데이터를 읽는 것
 
-- **`em.find()`**: 식별자로 엔티티를 찾습니다. 영속성 컨텍스트에 이미 있으면 DB 조회 없이 반환할 수 있습니다.
-- **`em.getReference()`**: 상태 조회를 미룰 수 있는 참조를 얻습니다. Hibernate에서는 미초기화 프록시일 수 있지만, 이미 관리 중인 엔티티나 설정에 따라 새 프록시를 만들지 않을 수도 있습니다.
+`em.find()`는 식별자로 엔티티를 찾습니다. 이미 영속성 컨텍스트가 관리하는 객체라면 DB에 다시 가지 않고 반환할 수 있습니다. `em.getReference()`는 상태 조회를 미룰 수 있는 참조를 얻을 때 사용합니다. Hibernate에서는 초기화하지 않은 프록시일 수 있지만, 이미 관리 중인 엔티티가 있다면 새 프록시를 만들지 않을 수도 있습니다.
 
-### 프록시 특징
+프록시는 실제 데이터가 필요한 접근이 생겼을 때 영속성 컨텍스트를 통해 엔티티를 읽습니다. 초기화 이후에도 프록시 객체 자체가 사라져 일반 객체로 교체되는 것은 아닙니다. 그래서 `getClass()`가 같은지 직접 비교하는 코드는 프록시를 고려해야 합니다.
 
-- 아래 특징은 Hibernate의 일반적인 서브클래스 프록시를 기준으로 합니다. 바이트코드 enhancement를 쓰는 방식과는 구분합니다.
-- 실제 클래스와 동일한 외형을 가집니다.
-- 프록시 객체는 실제 객체의 참조(`target`)를 보관합니다.
-- 프록시 객체를 호출하면 실제 객체의 메소드가 실행됩니다.
+컨텍스트가 닫힌 뒤 미초기화 연관을 읽으려 하면 `LazyInitializationException`이 발생할 수 있습니다. 이미 읽은 이름까지 모두 접근할 수 없다는 뜻은 아닙니다. 아직 DB에서 가져오지 않은 값이 필요한지가 중요합니다.
 
-### 프록시 객체 초기화
-
-메소드를 호출하는 시점에 영속성 컨텍스트에 요청하여 실제 엔티티를 `target`에 매핑합니다.
-
-### 프록시 주의사항
-
-- 처음 사용할 때 한 번만 초기화됩니다.
-- 초기화 후에도 프록시 객체는 유지되며, 실제 엔티티에 접근할 수 있게 됩니다.
-- 타입 체크 시 `instanceof`를 사용해야 합니다 (`==` 비교는 실패할 수 있습니다).
-- 영속성 컨텍스트에 찾는 엔티티가 이미 있으면 실제 엔티티를 반환합니다.
-- 세션이 닫힌 뒤 미초기화 참조를 사용하면 `LazyInitializationException`이 날 수 있습니다. 이미 로딩된 데이터 접근까지 모두 실패하는 것은 아닙니다.
-
-### 프록시 확인 방법
-
-```java
-emf.getPersistenceUnitUtil().isLoaded(entity);
-org.hibernate.Hibernate.initialize(entity);
-```
-
-## 즉시 로딩과 지연 로딩
-
-### 지연 로딩
+## LAZY로 설정해도 N+1은 생길 수 있다
 
 ```java
 @ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "TEAM_ID")
+@JoinColumn(name = "team_id")
 private Team team;
 ```
 
-연관 엔티티를 프록시로 조회하고, 실제 사용 시점에 쿼리를 실행합니다.
+회원 10명의 팀이 모두 다르고 캐시가 비어 있다고 해보겠습니다. 회원 목록을 한 번 읽은 뒤 팀 이름을 차례로 사용하면 팀 조회가 최대 열 번 추가될 수 있습니다. 이 숫자는 측정 결과가 아니라 N+1을 설명하기 위한 예입니다.
 
-### 즉시 로딩
+반대로 EAGER는 연관 데이터를 함께 준비하라는 요구입니다. 반드시 JOIN 한 번으로 읽으라는 뜻은 아니어서 추가 SELECT가 나갈 수도 있습니다. `@ManyToOne`과 `@OneToOne`의 기본값이 EAGER라는 점도 매핑을 읽을 때 확인해야 합니다.
 
-```java
-@ManyToOne(fetch = FetchType.EAGER)
-@JoinColumn(name = "TEAM_ID")
-private Team team;
-```
+조회마다 필요한 데이터가 다르면 LAZY를 출발점으로 두고, 팀 이름을 쓰는 화면에서 fetch join이나 EntityGraph 등으로 필요한 관계를 명시할 수 있습니다. 실제 SQL을 보면서 [batch fetch와 조회 방식](/posts/jpa-performance-tuning/)도 비교해야 합니다.
 
-엔티티를 조회할 때 연관 엔티티도 함께 조회합니다.
+## 함께 저장하는 것과 관계에서 빠지면 지우는 것
 
-### 주의사항
+로딩 방식과 별개로, 부모를 저장하거나 삭제할 때 자식을 어떻게 처리할지도 정할 수 있습니다. `cascade`는 부모의 특정 영속성 작업을 연관 객체에도 전달합니다. 예를 들어 PERSIST는 함께 영속화하고, REMOVE는 부모를 삭제할 때 삭제를 전파합니다. ALL에는 여러 작업이 포함됩니다.
 
-- 조회마다 필요한 데이터가 다르면 LAZY를 기본으로 두고 fetch join·EntityGraph 등으로 조회 범위를 명시할 수 있습니다. LAZY도 반복 접근하면 N+1이 발생합니다.
-- EAGER는 연관 데이터를 함께 준비하라는 요구이며, 반드시 SQL JOIN 한 번으로 가져오라는 뜻은 아닙니다. 추가 SELECT가 발생할 수 있습니다.
-- `@ManyToOne`, `@OneToOne`의 기본은 EAGER입니다. LAZY 적용 여부에는 프록시 생성과 매핑 조건도 영향을 줍니다.
-- `@OneToMany`, `@ManyToMany`는 기본이 지연 로딩입니다.
+`orphanRemoval = true`는 부모와의 관계에서 제거된 자식을 삭제하는 옵션입니다. 주문이 자신에게만 속하는 주문항목을 가진 상황을 생각할 수 있습니다. 주문항목을 컬렉션에서 빼는 것이 DB에서도 삭제한다는 의미일 때 사용할 수 있습니다.
 
-## 영속성 전이: CASCADE
+반면 여러 주문이 공유하는 상품을 한 주문에서 뺐다고 상품 자체까지 지워서는 안 됩니다. 고아 객체 삭제는 `@OneToOne`이나 `@OneToMany`에서 자식이 부모에게 개인 소유된 관계인지 확인하고 선택해야 합니다. `cascade = ALL`과 함께 넣는 관용구처럼 적용하면 삭제 범위가 예상보다 커질 수 있습니다.
 
-특정 엔티티를 영속화할 때 연관 엔티티도 함께 영속화합니다.
-
-**주요 종류**: `ALL`, `PERSIST`, `REMOVE`, `MERGE`, `REFRESH`, `DETACH`
-
-## 고아 객체
-
-부모 엔티티와 연관관계가 끊어진 자식 엔티티를 자동으로 삭제합니다.
-
-```java
-orphanRemoval = true
-```
-
-### 주의사항
-
-- 참조하는 곳(엔티티)이 하나일 때 사용합니다.
-- 특정 엔티티의 개인 소유일 때만 사용합니다.
-- `@OneToOne`, `@OneToMany`만 가능합니다.
-
-### CASCADE.ALL + orphanRemoval = true
-
-자식 엔티티의 생명주기를 부모를 통해 관리할 수 있으며, DDD의 Aggregate Root 개념 구현에 유용합니다.
-
-예를 들어 회원 10명의 이름만 보여주는 화면과 팀 이름까지 보여주는 화면은 필요한 데이터가 다릅니다. 팀이 모두 다르고 캐시가 비어 있다는 가정에서, 회원 목록 뒤에 팀을 하나씩 조회하면 추가 SELECT가 최대 10회 생길 수 있습니다. 이 숫자는 측정 결과가 아닌 N+1을 설명하는 예입니다. [조회별 fetch 계획과 배치 크기](/posts/jpa-performance-tuning/)에서 이 차이를 더 다룹니다. 구현 세부사항은 [Hibernate 6.6 문서](https://docs.jboss.org/hibernate/orm/6.6/userguide/html_single/Hibernate_User_Guide.html)를 참고했습니다.
+연관관계 어노테이션에 나란히 적힌 옵션이라도 LAZY는 언제 읽을지, cascade는 어떤 작업을 전파할지, orphanRemoval은 관계에서 빠진 자식을 삭제할지 정합니다. 생성 SQL과 삭제 결과를 확인할 때도 각각 나눠 보는 편이 이해하기 쉽습니다. [Hibernate 6.6 문서](https://docs.jboss.org/hibernate/orm/6.6/userguide/html_single/Hibernate_User_Guide.html)

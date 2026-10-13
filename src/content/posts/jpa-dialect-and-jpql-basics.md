@@ -1,16 +1,18 @@
 ---
 author: "luca"
 pubDatetime: 2023-05-19T19:35:14+09:00
-modDatetime: 2026-10-06T18:18:44+09:00
-title: "JPA 방언과 JPQL: 같은 조회가 DB별 SQL로 바뀌는 과정"
+modDatetime: 2026-10-13T15:44:59+09:00
+title: "JPA 방언이 DB별 SQL을 만드는 과정"
 slug: "jpa-dialect-and-jpql-basics"
 featured: false
 draft: false
 tags: ["학습노트", "jpa", "dialect", "jpql", "hibernate"]
-description: "데이터베이스 방언이 필요한 이유와 JPA 구동 방식, JPQL 이 SQL 과 다른 지점을 정리한 학습 노트입니다."
+description: "같은 페이지 조회도 MySQL과 Oracle에서는 SQL 모양이 다를 수 있습니다. JPQL과 DB 방언, EntityManager가 연결되는 지점을 정리했습니다."
 ---
 
-김영한님의 JPA 로드맵을 따라 학습하면서 정리한 노트입니다. JPA는 엔티티를 대상으로 코드를 작성하게 하지만, 실제 저장과 조회에는 DB가 이해하는 SQL이 필요합니다. 그 사이를 Hibernate 같은 구현체와 데이터베이스 방언(Dialect)이 연결합니다.
+회원 목록의 세 번째 페이지를 보여 주는 코드는 DB를 바꾸면 어떻게 될까요. 애플리케이션은 앞의 20개를 건너뛰고 10개를 달라고 요청하지만, 이를 표현하는 SQL은 DB와 버전에 따라 다를 수 있습니다.
+
+JPA를 구현하는 Hibernate는 DB 방언(Dialect)을 사용해 이런 차이를 처리합니다. 김영한님의 JPA 로드맵을 학습하며 JPQL이 실제 DB 조회로 이어지는 과정을 정리했습니다.
 
 ## 같은 페이징 요청이 다른 SQL이 되는 이유
 
@@ -20,7 +22,7 @@ MySQL의 LIMIT, 과거 Oracle에서 쓰던 ROWNUM 기반 쿼리는 모양이 다
 
 이 추상화가 DB 간 동작을 모두 같게 만들지는 않습니다. 타입, 잠금, 함수, 실행 계획은 실제 DB에서 확인해야 합니다.
 
-## EntityManager의 수명은 누가 관리하는가
+## 쿼리를 실행하는 EntityManager
 
 직접 JPA를 구동하면 `Persistence`로 `EntityManagerFactory`를 만들고, 여기서 `EntityManager`를 생성합니다. Factory는 공유하고 재사용할 수 있지만 EntityManager 자체는 여러 스레드가 동시에 공유해서 쓰는 객체가 아닙니다.
 
@@ -41,4 +43,4 @@ List<Member> members = em.createQuery(
 
 `Member`와 `age`는 엔티티와 속성 이름입니다. 위 코드는 매핑된 Member가 있다는 전제의 조회 예시이며, 실제 테이블·컬럼 이름은 매핑과 방언을 통해 SQL에 반영됩니다. ID 정렬은 같은 조건으로 페이지를 읽을 때 순서를 명확하게 해 주지만, 페이지 사이에 데이터가 추가·삭제되는 문제까지 해결하지는 않습니다.
 
-다음 노트인 [JPQL 조회와 벌크 연산](/posts/jpql-introduction/)에서 결과 타입과 조회 방법을 다룹니다. 방언과 영속성 컨텍스트 설명은 [Hibernate 6.6 문서](https://docs.jboss.org/hibernate/orm/6.6/userguide/html_single/Hibernate_User_Guide.html)를 기준으로 보완했습니다.
+이처럼 페이지 제한을 같은 API로 표현할 수 있어도 DB의 함수나 잠금, 실행 계획까지 같아지는 것은 아닙니다. DB를 바꾼다면 실제 조회 결과와 SQL을 함께 확인해야 합니다. [JPQL 회원 검색과 페이지 조회](/posts/jpql-introduction/)에서는 이 예제를 검색 조건과 DTO 조회로 확장합니다. 방언과 영속성 컨텍스트 설명은 [Hibernate 6.6 문서](https://docs.jboss.org/hibernate/orm/6.6/userguide/html_single/Hibernate_User_Guide.html)를 기준으로 보완했습니다.

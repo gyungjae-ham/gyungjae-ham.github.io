@@ -10,7 +10,7 @@
       "post": "src/content/posts/athlog-video-hls-redesign.md",
       "state": "existing_in_repository",
       "relation": "superseded_design_covered_by_existing_post",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:02",
@@ -18,7 +18,7 @@
       "post": "src/content/posts/instagram-content-sync-pipeline.md",
       "state": "existing_in_repository",
       "relation": "existing_post",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:03",
@@ -26,7 +26,7 @@
       "post": "src/content/posts/focus-brand-hardcode-to-remoteconfig.md",
       "state": "existing_in_repository",
       "relation": "existing_post",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:04",
@@ -38,7 +38,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-03-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:05",
@@ -50,7 +50,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-19T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:06",
@@ -58,7 +58,7 @@
       "post": "src/content/posts/athlog-video-hls-redesign.md",
       "state": "existing_in_repository",
       "relation": "existing_post",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:07",
@@ -70,7 +70,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-27T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:08",
@@ -82,7 +82,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-27T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:09",
@@ -94,7 +94,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-26T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:10",
@@ -106,7 +106,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-26T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:11",
@@ -132,7 +132,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-04-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:13",
@@ -144,7 +144,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-05-28T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:14",
@@ -156,7 +156,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-02T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:15",
@@ -164,7 +164,7 @@
       "post": "src/content/posts/personalized-home-product-list.md",
       "state": "existing_in_repository",
       "relation": "existing_post",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:16",
@@ -172,7 +172,7 @@
       "post": "src/content/posts/age-based-category-personalization.md",
       "state": "existing_in_repository",
       "relation": "existing_post",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:17",
@@ -180,7 +180,7 @@
       "post": "src/content/posts/crm-traffic-scheduled-autoscaling.md",
       "state": "existing_in_repository",
       "relation": "existing_post",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:18",
@@ -192,7 +192,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-12T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:19",
@@ -204,7 +204,7 @@
       "work_date_precision": "month",
       "publication_date_basis": "month_first_day_representative",
       "pubDatetime": "2026-06-01T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:20",
@@ -216,7 +216,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-23T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:21",
@@ -228,7 +228,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-11T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:22",
@@ -240,7 +240,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-17T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:23",
@@ -252,7 +252,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-18T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:24",
@@ -264,7 +264,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:25",
@@ -276,7 +276,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:26",
@@ -288,7 +288,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-06-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:27",
@@ -300,7 +300,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-01T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:28",
@@ -312,7 +312,7 @@
       "work_date_precision": "month",
       "publication_date_basis": "month_first_day_representative",
       "pubDatetime": "2026-06-11T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:29",
@@ -324,7 +324,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-02T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:30",
@@ -350,7 +350,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-31T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:32",
@@ -362,7 +362,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-27T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:33",
@@ -374,7 +374,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-29T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:34",
@@ -386,7 +386,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-08-21T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:35",
@@ -398,7 +398,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-08-19T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:36",
@@ -410,7 +410,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-08-24T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:37",
@@ -422,7 +422,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-08-25T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:38",
@@ -434,7 +434,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-08-25T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:39",
@@ -446,7 +446,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-01T00:00:00+09:00",
-      "editorial_revision": "2026-10-10-weekly-follow-up",
+      "editorial_revision": "2026-10-13-original-voice-context-examples",
       "follow_up_through": "2026-10-08",
       "follow_up_relation": "integrated_into_existing_post",
       "editorial_reason": "결과 불명 복구의 후속 사례로 배송 전 주문 전체 취소를 통합했습니다. 기존 발행일을 유지하며 선행 브랜치 병합, 전체 취소 main 병합, 부분 취소 보완 미병합 종료와 외부 연동 미확인을 구분합니다."
@@ -461,7 +461,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-17T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:41",
@@ -473,7 +473,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-10T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:42",
@@ -485,7 +485,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-15T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:43",
@@ -497,7 +497,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-16T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:44",
@@ -509,7 +509,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-28T00:00:00+09:00",
-      "editorial_revision": "2026-10-10-weekly-follow-up",
+      "editorial_revision": "2026-10-13-original-voice-context-examples",
       "follow_up_through": "2026-10-08",
       "follow_up_relation": "integrated_into_existing_post",
       "editorial_reason": "입력 경로별 적용 대상 검증과 비활성 쿠폰 추천 제외를 기존 글에 통합했습니다. 적용·관리 PR의 main 병합 상태와 QA의 기존 실패·마이그레이션 재검증 및 운영 결과 미확인을 반영합니다."
@@ -524,7 +524,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-04T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:46",
@@ -536,7 +536,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-02T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-reader-context"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:47",
@@ -551,7 +551,7 @@
       "previous_post": "src/content/posts/brand-wish-count-batch-contract.md",
       "editorial_reason": "같은 브랜드 목록의 집계·표시 계약을 다루는 후속 사례로 로그 24 글에 통합했습니다.",
       "source_work_date_start": "2026-09-21",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:48",
@@ -564,7 +564,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "verified_own_commit_author_date_kst",
       "pubDatetime": "2026-10-02T00:00:00+09:00",
-      "editorial_revision": "2026-10-06-accuracy-context-status"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     },
     {
       "source_id": "log:49",
@@ -577,7 +577,7 @@
       "work_date_precision": "day",
       "publication_date_basis": "verified_own_commit_author_date_kst",
       "pubDatetime": "2026-10-06T00:00:00+09:00",
-      "editorial_revision": "2026-10-10-weekly-publication"
+      "editorial_revision": "2026-10-13-original-voice-context-examples"
     }
   ],
   "publication_date_policy": {
@@ -606,6 +606,13 @@
       "rewritten_public_posts": 37,
       "scope": "36 published backlog case studies and 1 weekly post (log:48)",
       "preserved": "Existing work dates, slugs, draft:false, featured flags, merged and withheld decisions"
+    },
+    "whole_site_reader_revision": {
+      "date": "2026-10-13",
+      "reviewed_public_posts": 91,
+      "edited_public_posts": 91,
+      "basis": "Author-written Tistory originals; see docs/blog-writing-reference.md. Context, causal examples, titles and descriptions reviewed in full.",
+      "preserved": "Work dates, URLs, draft:false, featured and learning-note classification, and material implementation limits. Work-status badges removed; specific limits remain in prose."
     }
   }
 }

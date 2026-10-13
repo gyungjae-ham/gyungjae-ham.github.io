@@ -1,18 +1,20 @@
 ---
-title: About
+title: 소개
 description: Kotlin·Spring과 Python·Django로 일하는 백엔드 개발자 함경재(Luca)의 경력과 문제 해결 사례입니다.
 ---
 
-안녕하세요, 백엔드 개발자 **함경재 (Luca)** 입니다. Kotlin·Spring으로 주문과 외부 연동을 다뤘고, 현재는 Python·Django 기반 커머스에서 조회 성능과 주문·혜택의 정합성을 개선하고 있습니다.
+안녕하세요, 백엔드 개발자 **함경재(Luca)**입니다. Kotlin·Spring으로 주문과 외부 연동 기능을 개발했고, 현재는 Python·Django 기반 커머스에서 일하고 있습니다. 느린 조회를 줄이고, 결제와 취소 과정에서 주문·쿠폰 기록이 어긋나지 않도록 고치는 일을 하고 있습니다.
+
+블로그에는 실제 작업에서 무엇이 문제였고 왜 그 방법을 선택했는지 적고 있습니다. 개념을 공부하며 정리한 글은 [학습 노트](/tags/학습노트/)로 구분했습니다.
 
 ## 먼저 읽어볼 작업
 
 - [주문 상세에서 반복 쿼리를 줄인 과정](/posts/order-detail-prefetch-exists/): 응답에 필요한 정보부터 정하고, 항목 수가 늘어도 옵션 조회가 반복되지 않도록 바꿨습니다.
 - [첫 무료교환 혜택을 주문별로 추적하기](/posts/first-exchange-benefit-ledger/): 취소와 재사용이 엇갈릴 때 다른 주문의 혜택을 복원하지 않도록 사용 이력을 나눴습니다.
 - [앱 푸시가 도착하지 않는 원인 찾기](/posts/push-delivery-three-boundaries/): 토큰, 수신 권한, 발송 시나리오를 나눠 조사하고 iOS 실제 수신까지 확인했습니다.
-- [영상 변환과 공개 상태 분리](/posts/athlog-video-hls-redesign/): 2026년 5월 BIND의 athlog에 ffmpeg·Celery 기반 HLS 변환을 구현하고 테스트 서버에서 검증했습니다. 첫 재생 1초 이내는 목표이며 실측 성과로 제시하지 않습니다.
+- [athlog 영상 변환과 공개 상태 관리](/posts/athlog-video-hls-redesign/): 2026년 5월 BIND에서 ffmpeg·Celery 기반 HLS 변환을 구현하고, 재생에 필요한 파일이 준비된 뒤 공개하도록 처리했습니다. 테스트 서버에서 검증한 내용입니다.
 
-## Experience
+## 경력
 
 ### BIND — 백엔드 · 2026.01 ~ 재직중
 
@@ -53,7 +55,7 @@ description: Kotlin·Spring과 Python·Django로 일하는 백엔드 개발자 �
 
 - 한 달 MVP — PDF 솔루션 구독료 연 300만원을 S3 직접 서빙으로 대체
 
-## Tech Stack
+## 사용해 온 기술
 
 | 영역          | 도구                                                                                                               |
 | ------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -64,7 +66,7 @@ description: Kotlin·Spring과 Python·Django로 일하는 백엔드 개발자 �
 | **Testing**   | JUnit5 · MockK · Kotest · RestDocs (KotlinDSL) · K6                                                                |
 | **Learning**  | Rust + Axum                                                                                                        |
 
-## Contact
+## 연락처
 
 - GitHub — [@gyungjae-ham](https://github.com/gyungjae-ham)
 - Email — gyeongjae.h.dev@gmail.com

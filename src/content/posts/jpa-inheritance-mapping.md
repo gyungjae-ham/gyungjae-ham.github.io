@@ -1,16 +1,18 @@
 ---
 author: "luca"
 pubDatetime: 2023-05-26T18:17:52+09:00
-modDatetime: 2026-10-06T18:18:44+09:00
-title: "JPA 상속 매핑: Item 전체 조회가 필요한가부터 묻기"
+modDatetime: 2026-10-13T15:44:59+09:00
+title: "JPA 상속 매핑 전략 비교하기"
 slug: "jpa-inheritance-mapping"
 featured: false
 draft: false
 tags: ["학습노트", "jpa", "inheritance", "mapped-superclass"]
-description: "객체 상속을 DB 슈퍼타입·서브타입 관계로 매핑하는 세 가지 전략과 @MappedSuperclass 의 용도를 정리한 학습 노트입니다."
+description: "도서와 영화를 모두 상품으로 검색할지, 각 타입만 따로 조회할지에 따라 테이블 구성이 달라집니다. 세 가지 상속 전략과 공통 필드 재사용을 비교합니다."
 ---
 
-김영한님의 JPA 로드맵을 따라 정리한 학습 노트입니다. 도서와 영화를 모두 `Item`으로 조회하고 싶다면, 객체의 상속 구조를 어떤 테이블 구조로 저장할지 정해야 합니다. JPA의 세 전략은 같은 객체 모델에서도 조회와 저장 비용을 다르게 만듭니다.
+도서에는 저자가 있고 영화에는 감독이 있지만, 둘 다 상품명과 가격을 가진 상품으로 판매한다고 가정해 보겠습니다. Java에서는 공통 필드를 Item에 두고 Book과 Movie가 상속하게 만들 수 있습니다. DB에는 객체의 상속과 똑같은 구조가 없으므로 어떤 테이블에 나눠 저장할지 정해야 합니다.
+
+김영한님의 JPA 로드맵을 학습하면서 이 모델을 세 전략으로 비교했습니다. 도서만 주로 조회하는지, 모든 상품을 한 목록으로 보여 주는지에 따라 비용이 달라집니다.
 
 아래는 `Item(id, name)`, `Book(author)`, `Movie(director)`라는 설명용 모델입니다.
 
@@ -26,9 +28,9 @@ description: "객체 상속을 DB 슈퍼타입·서브타입 관계로 매핑하
 
 구현 클래스별 테이블은 특정 타입만 주로 읽을 때 구조가 단순할 수 있습니다. 반면 `Item` 전체 검색이나 다른 테이블에서 모든 상품을 하나의 외래키로 참조하는 요구가 많다면 불리합니다. 무조건 금지할 전략이라기보다 다형 조회와 참조 무결성 요구를 먼저 따져야 합니다.
 
-## 공통 필드만 재사용한다면
+## 작성일을 공유하는 것도 상속 매핑이 필요할까
 
-작성일·수정일을 여러 엔티티에 넣되 이들을 하나의 부모 엔티티로 검색할 필요가 없다면 `@MappedSuperclass`를 쓸 수 있습니다.
+상품과 주문에 모두 작성일이 있다고 해서 “작성일을 가진 모든 객체”를 하나의 엔티티로 조회할 필요는 없습니다. 이렇게 필드 매핑만 재사용하려면 `@MappedSuperclass`를 쓸 수 있습니다.
 
 ```java
 @MappedSuperclass
@@ -39,6 +41,6 @@ abstract class BaseEntity {
 }
 ```
 
-이 축약 예제의 BaseEntity는 조회 대상 엔티티가 아니며, 자신의 테이블도 없습니다. 상속한 엔티티의 테이블에 필드가 매핑됩니다. 값을 자동으로 채우는 기능은 별도이므로 [Auditing 설정](/posts/jpa-auditing/)이 필요합니다.
+이 축약 예제의 BaseEntity는 조회 대상 엔티티가 아니며, 자신의 테이블도 없습니다. 상속한 엔티티의 테이블에 필드가 매핑됩니다. 값을 자동으로 채우는 기능은 별도입니다. Spring Data JPA로 작성 시각을 기록하는 방법은 [Auditing 설정](/posts/jpa-auditing/)에 정리했습니다.
 
 전략별 매핑은 [Jakarta Persistence 3.1 명세](https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1)를 참고했습니다. 실제 SQL과 성능은 선택한 Hibernate·DB 버전, 조회하는 속성에 맞춰 확인해야 합니다.
