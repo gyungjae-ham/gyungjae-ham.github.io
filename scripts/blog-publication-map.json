@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "checked_at": "2026-10-10T10:00:09+09:00",
-  "scope": "Obsidian numbered work logs 01–49",
+  "checked_at": "2026-10-17T10:00:17.947685+09:00",
+  "scope": "Obsidian numbered work logs 01–50",
   "note": "Repository editorial state only; publication is verified separately in GitHub Actions. Withheld sources require evidence review before reconsideration. A changed source hash does not authorize duplicate publication.",
   "entries": [
     {
@@ -438,7 +438,7 @@
     },
     {
       "source_id": "log:39",
-      "source_sha256": "f9b2eeaec8df1c290e6108bfa9d03d064cff9ff36b5abcc8cf529802d7916251",
+      "source_sha256": "1194dd600c559a8d9a0aab3f79769b9510e6d412bd4923159a4e89fd6ffe9a8a",
       "post": "src/content/posts/escrow-return-fee-uncertain-result.md",
       "state": "ready_in_repository",
       "relation": "new_post",
@@ -447,9 +447,9 @@
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-01T00:00:00+09:00",
       "editorial_revision": "2026-10-13-original-voice-context-examples",
-      "follow_up_through": "2026-10-08",
+      "follow_up_through": "2026-10-12",
       "follow_up_relation": "integrated_into_existing_post",
-      "editorial_reason": "결과 불명 복구의 후속 사례로 배송 전 주문 전체 취소를 통합했습니다. 기존 발행일을 유지하며 선행 브랜치 병합, 전체 취소 main 병합, 부분 취소 보완 미병합 종료와 외부 연동 미확인을 구분합니다."
+      "editorial_reason": "전액 취소 확인과 계좌 환불 대기·명시적 실패 구분을 기존 취소 복구 글에 통합했습니다. 완료 후 후속 실패 감지는 범위 밖임을 결과 옆에 명시합니다. 자동 구매확정·알림 예약 후속은 중심 주제가 달라 이번 글에 덧붙이지 않습니다."
     },
     {
       "source_id": "log:40",
@@ -489,7 +489,7 @@
     },
     {
       "source_id": "log:43",
-      "source_sha256": "1dfdbdabdcb92d28dc97bbdcdf6f48ba9e0e1c97a67f928038b6a444bba64c32",
+      "source_sha256": "e0a502c1acc12b7561fb9bda39c717c1e34d9c65c2249d3aebc91b00d8d8005f",
       "post": "src/content/posts/seller-inquiry-order-membership.md",
       "state": "ready_in_repository",
       "relation": "new_post",
@@ -497,7 +497,10 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-16T00:00:00+09:00",
-      "editorial_revision": "2026-10-13-original-voice-context-examples"
+      "editorial_revision": "2026-10-13-original-voice-context-examples",
+      "follow_up_through": "2026-10-15",
+      "follow_up_relation": "integrated_into_existing_post",
+      "editorial_reason": "9월 미병합 구현과 10월 주문번호 변환·판매자 소유권 후속을 구분해 통합했습니다. 문의 작성 주체를 판매자 관리 화면으로 바로잡고 입력 예시에서 검증 순서와 배포 호환성까지 연결했습니다."
     },
     {
       "source_id": "log:44",
@@ -578,6 +581,18 @@
       "publication_date_basis": "verified_own_commit_author_date_kst",
       "pubDatetime": "2026-10-06T00:00:00+09:00",
       "editorial_revision": "2026-10-13-original-voice-context-examples"
+    },
+    {
+      "source_id": "log:50",
+      "source_sha256": "9d711ff8e9dca45596d16e2d08876b7ac390726d6022502849bf0297a9badfdb",
+      "post": "src/content/posts/content-series-schema-retry.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "editorial_reason": "공유 콘텐츠 테이블 확장의 구버전 쓰기 호환과 DDL 부분 실패 재시도에 집중한 독립 사례입니다. API 세부 기능 나열은 덜고 실제 잠금 실패 회귀와 리뷰 중 상태를 구분했습니다.",
+      "work_date_start": "2026-10-12",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-10-12T00:00:00+09:00"
     }
   ],
   "publication_date_policy": {
