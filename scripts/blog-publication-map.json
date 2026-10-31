@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "checked_at": "2026-10-24T10:00:09+09:00",
-  "scope": "Obsidian numbered work logs 01–52",
+  "checked_at": "2026-10-31T10:00:07+09:00",
+  "scope": "Obsidian numbered work logs 01–59",
   "note": "Repository editorial state only; publication is verified separately in GitHub Actions. Withheld sources require evidence review before reconsideration. A changed source hash does not authorize duplicate publication.",
   "entries": [
     {
@@ -14,11 +14,14 @@
     },
     {
       "source_id": "log:02",
-      "source_sha256": "e1f377c7a7483e971eff61f169f8bda6970c83b17b0f6e3da17f622067e3c9a4",
+      "source_sha256": "ee26ef31155fd293281d1a03b848030d135c684e343fcd6d238ab9e046fd7a1d",
       "post": "src/content/posts/instagram-content-sync-pipeline.md",
       "state": "existing_in_repository",
       "relation": "existing_post",
-      "editorial_revision": "2026-10-13-original-voice-context-examples"
+      "editorial_revision": "2026-10-13-original-voice-context-examples",
+      "editorial_reason": "정기 수집 제어와 현재 예약 시각을 기존 자동 수집 글에 통합",
+      "follow_up_through": "2026-10-26",
+      "follow_up_relation": "integrated_into_existing_post"
     },
     {
       "source_id": "log:03",
@@ -438,7 +441,7 @@
     },
     {
       "source_id": "log:39",
-      "source_sha256": "baa8c9a02a321b8e57de0f4b3e542c93cc175528735f8eb6a31fb8092af01372",
+      "source_sha256": "04f7adfe020ee881a93ff9df900cfe680c67a579e1b3a5eae5411d94af307e83",
       "post": "src/content/posts/escrow-return-fee-uncertain-result.md",
       "state": "ready_in_repository",
       "relation": "new_post",
@@ -447,9 +450,9 @@
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-01T00:00:00+09:00",
       "editorial_revision": "2026-10-13-original-voice-context-examples",
-      "follow_up_through": "2026-10-22",
+      "follow_up_through": "2026-10-30",
       "follow_up_relation": "integrated_into_existing_post",
-      "editorial_reason": "10월 22일 배송 중 판매자 취소의 PG 성공 저장·DB 후처리 복구를 통합했습니다. 구매확정·입금 전 취소·배송 조회 확장은 중심 주제가 달라 추가하지 않았습니다."
+      "editorial_reason": "환불 재전송의 지문·기한·경합만 통합; 배치·다른 도메인 변경 제외"
     },
     {
       "source_id": "log:40",
@@ -584,16 +587,16 @@
     },
     {
       "source_id": "log:50",
-      "source_sha256": "d65b8523802e742ee8fb17e59dfcc2ca48dc473d1ff4aaefc4cb570b32e5d44f",
+      "source_sha256": "1c4b5a67d9834a1d3cd0a2597cde66d0d1b0d25f9c068ac5327e2a95a33cc5d1",
       "post": "src/content/posts/content-series-schema-retry.md",
       "state": "ready_in_repository",
       "relation": "new_post",
-      "editorial_reason": "스키마·후속 API의 10월 19일 main 병합을 반영했습니다. 시리즈 잠금의 중첩 트랜잭션 방어는 스키마 재시도 중심 주제에서 제외하고 운영 적용 미확인을 유지합니다.",
+      "editorial_reason": "추가 마이그레이션 없는 시리즈 확장과 로컬 검증을 통합",
       "work_date_start": "2026-10-12",
       "work_date_precision": "day",
       "publication_date_basis": "verified_own_commit_author_date_kst",
       "pubDatetime": "2026-10-12T00:00:00+09:00",
-      "follow_up_through": "2026-10-19",
+      "follow_up_through": "2026-10-26",
       "follow_up_relation": "integrated_into_existing_post"
     },
     {
@@ -610,15 +613,101 @@
     },
     {
       "source_id": "log:52",
-      "source_sha256": "6388fa4f7a35b1554a810dfb7b24a436b147488abddff46be7a42b9956b42c22",
+      "source_sha256": "5ed72155bd54f8dbb588bca13d03157b901ca7ed2f297327e240d940bce10213",
       "post": "src/content/posts/product-coupon-display-eligibility.md",
       "state": "ready_in_repository",
       "relation": "new_post",
-      "editorial_reason": "상품 상세의 표시 정책과 실제 쿠폰 사용 자격을 분리한 독립 사례입니다. 기존 쿠폰 적용·정산 글과 중복하지 않고 후보·가격의 일관성과 프론트 연동 한계를 설명합니다.",
+      "editorial_reason": "후보·보유분 조회 최적화와 응답 비교 근거를 통합",
       "work_date_start": "2026-10-19",
       "work_date_precision": "day",
       "publication_date_basis": "verified_own_commit_author_date_kst",
-      "pubDatetime": "2026-10-19T00:00:00+09:00"
+      "pubDatetime": "2026-10-19T00:00:00+09:00",
+      "follow_up_through": "2026-10-26",
+      "follow_up_relation": "integrated_into_existing_post"
+    },
+    {
+      "source_id": "log:53",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "post": "src/content/posts/search-cached-products-sold-out-status.md",
+      "work_date_start": "2026-10-26",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-10-26T00:00:00+09:00",
+      "source_sha256": "7ba0b285662b02b49648224fdd3b2c5321040a3b8de0639785002541477007aa",
+      "editorial_reason": "캐시 상태와 DB 상태를 구분하고 페이지 내부 정렬·표시를 함께 보완한 독립 사례"
+    },
+    {
+      "source_id": "log:54",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "post": "src/content/posts/datadog-handled-errors-data-protection.md",
+      "work_date_start": "2026-10-27",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-10-27T00:00:00+09:00",
+      "source_sha256": "43ad8c2cf9a44201a5a7015f9033280a2c17b4b29f12be3d98d316570a77957d",
+      "editorial_reason": "관측 전환의 오류 보존·정보 보호에 집중; 샘플링·CORS 등 별도 구현 목록은 제외"
+    },
+    {
+      "source_id": "log:55",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "post": "src/content/posts/return-request-body-explicit-data.md",
+      "work_date_start": "2026-10-29",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-10-29T00:00:00+09:00",
+      "source_sha256": "8e24df1205aa6d5dfc445f6dbfdad3b72fdc17b5a570f29d05b49d273c07e026",
+      "editorial_reason": "본문 선행 읽기와 내부 HTTP 재파싱의 결합을 제거한 독립 사례"
+    },
+    {
+      "source_id": "log:56",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "post": "src/content/posts/return-request-owned-cleanup.md",
+      "work_date_start": "2026-10-29",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-10-29T00:00:00+09:00",
+      "source_sha256": "a4b38bd82a0dcf9a4997b62935f84aab63c53ed390b624a8e53144d12e260268",
+      "editorial_reason": "실패 요청의 생성분 정리 소유권을 제한한 사례; 금융 이벤트 복구와 구분"
+    },
+    {
+      "source_id": "log:57",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "post": "src/content/posts/product-options-commit-cache-failure.md",
+      "work_date_start": "2026-10-30",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-10-30T00:00:00+09:00",
+      "source_sha256": "1d74b72e5316bd845d41eaee3abd8e371ff3d95f389908c4e02d8250a8f45c41",
+      "editorial_reason": "옵션 조회와 커밋 후 캐시 실패의 순서; 영속 삭제 보장 없음 유지"
+    },
+    {
+      "source_id": "log:58",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "post": "src/content/posts/wishlist-response-id-normalization.md",
+      "work_date_start": "2026-10-30",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-10-30T00:00:00+09:00",
+      "source_sha256": "faed35448042da770a8f170366a659be426e12a1c8c0d4a95d8ee32edf7bf6ba",
+      "editorial_reason": "최초 AI 초안 기여와 본인 응답·타입·조회 보완을 구분"
+    },
+    {
+      "source_id": "log:59",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "post": "src/content/posts/partial-page-content-create-validation.md",
+      "work_date_start": "2026-10-30",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-10-30T00:00:00+09:00",
+      "source_sha256": "409ec516898833b900bb5658545af04d2651897c86f49cddc2daadeaec20e93c",
+      "editorial_reason": "신규 생성 필수값과 기존 partial 생략을 구분; 현재 리뷰 중"
     }
   ],
   "publication_date_policy": {
