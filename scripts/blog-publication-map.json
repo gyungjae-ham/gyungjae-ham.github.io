@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "checked_at": "2026-10-31T10:00:07+09:00",
-  "scope": "Obsidian numbered work logs 01–59",
+  "checked_at": "2026-11-07T10:00:09+09:00",
+  "scope": "Obsidian numbered work logs 01–63",
   "note": "Repository editorial state only; publication is verified separately in GitHub Actions. Withheld sources require evidence review before reconsideration. A changed source hash does not authorize duplicate publication.",
   "entries": [
     {
@@ -357,7 +357,7 @@
     },
     {
       "source_id": "log:32",
-      "source_sha256": "0b331181c2e5c84b00fcb0c618008ac08e923c5510a32da19dd30a107e7c7625",
+      "source_sha256": "baf2ba5298d48162cb2a0aa3d48a6460fad88f8f9ae84af69787e67eae5c8619",
       "post": "src/content/posts/first-exchange-benefit-ledger.md",
       "state": "ready_in_repository",
       "relation": "new_post",
@@ -365,7 +365,10 @@
       "work_date_precision": "day",
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-07-27T00:00:00+09:00",
-      "editorial_revision": "2026-10-13-original-voice-context-examples"
+      "editorial_revision": "2026-10-13-original-voice-context-examples",
+      "follow_up_through": "2026-11-04",
+      "follow_up_relation": "integrated_into_existing_post",
+      "editorial_reason": "기존 글에 후속 정책·현재 병합 상태와 검증 한계를 통합; 작업일 유지"
     },
     {
       "source_id": "log:33",
@@ -441,7 +444,7 @@
     },
     {
       "source_id": "log:39",
-      "source_sha256": "04f7adfe020ee881a93ff9df900cfe680c67a579e1b3a5eae5411d94af307e83",
+      "source_sha256": "b8eb1e0ff8b9515a072315a20678da5b8984b12cc9579a40ebf44c8386ac81f7",
       "post": "src/content/posts/escrow-return-fee-uncertain-result.md",
       "state": "ready_in_repository",
       "relation": "new_post",
@@ -450,9 +453,9 @@
       "publication_date_basis": "work_period_start",
       "pubDatetime": "2026-09-01T00:00:00+09:00",
       "editorial_revision": "2026-10-13-original-voice-context-examples",
-      "follow_up_through": "2026-10-30",
+      "follow_up_through": "2026-11-04",
       "follow_up_relation": "integrated_into_existing_post",
-      "editorial_reason": "환불 재전송의 지문·기한·경합만 통합; 배치·다른 도메인 변경 제외"
+      "editorial_reason": "기존 글에 후속 정책·현재 병합 상태와 검증 한계를 통합; 작업일 유지"
     },
     {
       "source_id": "log:40",
@@ -646,8 +649,10 @@
       "work_date_precision": "day",
       "publication_date_basis": "verified_own_commit_author_date_kst",
       "pubDatetime": "2026-10-27T00:00:00+09:00",
-      "source_sha256": "43ad8c2cf9a44201a5a7015f9033280a2c17b4b29f12be3d98d316570a77957d",
-      "editorial_reason": "관측 전환의 오류 보존·정보 보호에 집중; 샘플링·CORS 등 별도 구현 목록은 제외"
+      "source_sha256": "5396e090cd45fbf32ea0e6ab1e5966c02e1ca3c47c6e4400d600e4fd51a3470e",
+      "editorial_reason": "기존 글에 후속 정책·현재 병합 상태와 검증 한계를 통합; 작업일 유지",
+      "follow_up_through": "2026-11-02",
+      "follow_up_relation": "integrated_into_existing_post"
     },
     {
       "source_id": "log:55",
@@ -706,8 +711,62 @@
       "work_date_precision": "day",
       "publication_date_basis": "verified_own_commit_author_date_kst",
       "pubDatetime": "2026-10-30T00:00:00+09:00",
-      "source_sha256": "409ec516898833b900bb5658545af04d2651897c86f49cddc2daadeaec20e93c",
-      "editorial_reason": "신규 생성 필수값과 기존 partial 생략을 구분; 현재 리뷰 중"
+      "source_sha256": "ce7c7927280d20c32d9b1687ee6a52529cce9612010dd23c0fc88c17a8057c2e",
+      "editorial_reason": "기존 글에 후속 정책·현재 병합 상태와 검증 한계를 통합; 작업일 유지",
+      "follow_up_through": "2026-11-02",
+      "follow_up_relation": "integrated_into_existing_post"
+    },
+    {
+      "source_id": "log:60",
+      "source_sha256": "45756761dcef8444324d7ff0dd4a3a092002d10d2c3607651ead7eb2c35feb87",
+      "post": "src/content/posts/transport-excel-input-server-errors.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "editorial_reason": "초기 AI 직렬화 수정과 본인 오류 분류·XML 회귀 보완의 기여를 구분",
+      "work_date_start": "2026-11-03",
+      "source_work_date_start": "2026-11-03",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-11-03T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:61",
+      "source_sha256": "1917ccbcc9a1fdfee98703fdb3eacf79d7c4871d764dea1042e58c1e62f24e6a",
+      "post": "src/content/posts/search-pagination-result-window-validation.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "editorial_reason": "캐시 전 범위 검사와 API별 응답 계약의 독립 사례",
+      "work_date_start": "2026-11-04",
+      "source_work_date_start": "2026-11-04",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-11-04T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:62",
+      "source_sha256": "b8774355b9b69bbab37e89be7f5a9526233e995aad9a454d7a181bb1a420eaf4",
+      "post": "src/content/posts/cosmetic-product-validation-review-visibility.md",
+      "state": "ready_in_repository",
+      "relation": "new_post",
+      "editorial_reason": "최종 저장값 검증과 검수 전 공개 조회를 한 등록 흐름으로 통합; 리뷰 중",
+      "work_date_start": "2026-11-04",
+      "source_work_date_start": "2026-11-04",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-11-04T00:00:00+09:00"
+    },
+    {
+      "source_id": "log:63",
+      "source_sha256": "b6909d5658a7b3559695265e0808cff78c9901ff2a892ff06c41dc8a828477a1",
+      "post": "src/content/posts/cosmetic-product-validation-review-visibility.md",
+      "state": "ready_in_repository",
+      "relation": "merged_follow_up",
+      "editorial_reason": "동일 화장품 등록 정책의 저장·공개 연결 사례로 로그 62와 통합",
+      "work_date_start": "2026-11-04",
+      "source_work_date_start": "2026-11-05",
+      "work_date_precision": "day",
+      "publication_date_basis": "verified_own_commit_author_date_kst",
+      "pubDatetime": "2026-11-04T00:00:00+09:00"
     }
   ],
   "publication_date_policy": {
